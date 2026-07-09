@@ -1,0 +1,8 @@
+data/
+output/
+legacy/
+*.tar.gz
+Caddyfile
+docker-compose.yml
+backup.sh
+deploy_remote.sh

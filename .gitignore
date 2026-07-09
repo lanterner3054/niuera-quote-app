@@ -1,0 +1,23 @@
+# ---- 真实业务数据(敏感:银行/价格/客户/电子章),只提交 example 模板 ----
+data/*
+!data/config.example.json
+!data/products.example.json
+!data/README.md
+
+# ---- 生成的单据文件 ----
+output/*
+!output/.gitkeep
+
+# ---- 部署产物与含真实 IP 的本地配置 ----
+deploy/dist/
+deploy/stage/
+deploy/Caddyfile
+
+# ---- Python / 工具 ----
+__pycache__/
+.pytest_cache/
+*.pyc
+.claude/
+build/
+*.spec
+*.bak*

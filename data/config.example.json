@@ -1,0 +1,47 @@
+{
+ "company": {
+  "name": "Your Company Co., Ltd",
+  "address": "No.1 Example Road, Your City, Your Country",
+  "contact_line": "T:+00-000-00000000    Web: https://example.com    E-mail: info@example.com",
+  "logo": "logo.jpeg"
+ },
+ "defaults": {
+  "quotation": {
+   "from_name": "Your Name",
+   "currency": "USD",
+   "origin": "Made in China",
+   "payment": "T/T 100% in advance",
+   "price_term": "EXW Your City",
+   "delivery_time": "Within 30 days after deposit",
+   "package": "Standard Export Packing",
+   "validity": "30 days"
+  },
+  "pi": {
+   "from_name": "Your Name",
+   "currency": "USD",
+   "origin": "Made in China",
+   "payment": "T/T 100% in advance",
+   "price_term": "FOB SHANGHAI",
+   "delivery_time": "Within 10 working days after receipt of the payment.",
+   "package": "Standard Export Packing.",
+   "validity": "30 days."
+  }
+ },
+ "sales_list": ["Your Name"],
+ "bank_accounts": [
+  {
+   "id": "bank_main",
+   "label": "默认账户(请修改)",
+   "ac_bank": "YOUR BANK NAME, BRANCH",
+   "address": "YOUR BANK ADDRESS",
+   "beneficiary": "YOUR COMPANY NAME",
+   "account_no": "000000000000",
+   "swift": "XXXXXXXX",
+   "currency": "USD",
+   "is_default": true
+  }
+ ],
+ "stamp": {"path": "stamp.png", "enabled_default": true},
+ "legacy_dirs": [],
+ "pi": {"prefix": "ABC-", "next_seq": 1}
+}

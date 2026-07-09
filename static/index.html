@@ -1,0 +1,1096 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>NIUERA 报价工作台</title>
+<style>
+  :root{
+    --green:#6BAE2E; --green-d:#578F24; --ink:#1f2430; --muted:#6b7280;
+    --line:#e5e7eb; --bg:#f6f7f9; --card:#ffffff; --head:#1F4E78; --warn:#b45309;
+    --gold:#b45309; --gold-bg:#fef3c7;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;font-family:-apple-system,"Segoe UI",Roboto,"PingFang SC","Microsoft YaHei",sans-serif;
+       background:var(--bg);color:var(--ink);font-size:14px}
+  header{background:var(--card);border-bottom:1px solid var(--line);padding:10px 18px;
+         display:flex;align-items:center;gap:14px;position:sticky;top:0;z-index:20}
+  header .logo{font-weight:800;color:var(--green);font-size:18px;letter-spacing:.5px}
+  header .sub{color:var(--muted);font-size:12px}
+  header .spacer{flex:1}
+  .tabs{display:flex;gap:4px}
+  .tabs button{border:0;background:transparent;padding:8px 14px;border-radius:8px;font-weight:600;color:var(--muted)}
+  .tabs button.on{background:var(--head);color:#fff}
+  button{font:inherit;cursor:pointer;border-radius:8px;border:1px solid var(--line);
+          background:#fff;padding:7px 12px;color:var(--ink)}
+  button:hover{border-color:#cbd5e1}
+  button.primary{background:var(--green);border-color:var(--green);color:#fff;font-weight:600}
+  button.primary:hover{background:var(--green-d)}
+  button.ghost{background:transparent}
+  button.sm{padding:4px 8px;font-size:12px}
+  button:disabled{opacity:.45;cursor:not-allowed}
+  .wrap{display:flex;gap:16px;padding:16px;align-items:flex-start}
+  .col-left{width:340px;flex:none;position:sticky;top:64px}
+  .col-right{flex:1;min-width:0}
+  .full{padding:16px}
+  .card{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:14px;margin-bottom:14px}
+  .card h3{margin:0 0 10px;font-size:13px;color:var(--muted);text-transform:uppercase;letter-spacing:.4px}
+  label{display:block;font-size:12px;color:var(--muted);margin:0 0 3px}
+  input,select,textarea{width:100%;font:inherit;padding:7px 9px;border:1px solid var(--line);
+        border-radius:8px;background:#fff;color:var(--ink)}
+  input:focus,select:focus,textarea:focus{outline:none;border-color:var(--green)}
+  input[readonly]{background:#f3f4f6;color:var(--muted)}
+  .grid2{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+  .grid3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px}
+  .req::after{content:" *";color:#dc2626}
+  .search{margin-bottom:10px}
+  .chips{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:10px}
+  .chip{font-size:12px;padding:4px 9px;border-radius:999px;border:1px solid var(--line);background:#fff;cursor:pointer}
+  .chip.active{background:var(--ink);color:#fff;border-color:var(--ink)}
+  .catalog{max-height:62vh;overflow:auto;border-top:1px solid var(--line)}
+  .pitem{padding:9px 4px;border-bottom:1px solid var(--line);display:flex;gap:8px;align-items:flex-start}
+  .pitem .nm{font-weight:600;color:#b91c1c;font-size:12.5px}
+  .pitem .it{color:var(--muted);font-size:12px}
+  .pitem .pr{color:var(--green-d);font-size:12px;font-weight:600}
+  .pitem .meta{flex:1;min-width:0}
+  .pitem button{flex:none}
+  table{width:100%;border-collapse:collapse}
+  th,td{text-align:left;padding:7px 6px;border-bottom:1px solid var(--line);vertical-align:top}
+  th{font-size:11px;color:var(--muted);text-transform:uppercase;font-weight:600}
+  td .item-nm{font-weight:600}
+  td input{padding:5px 7px}
+  .line-input{margin-bottom:6px;font-weight:600}
+  .desc-input{height:88px;min-width:260px;font-size:12px;line-height:1.35;resize:vertical}
+  .mini-row{display:grid;grid-template-columns:80px 1fr;gap:6px;margin-top:6px;align-items:center}
+  .mini-row label{margin:0}
+  .mini-row input{font-size:12px}
+  .num{width:88px;text-align:right}
+  .amt{font-variant-numeric:tabular-nums;text-align:right;white-space:nowrap}
+  .total-row td{border-top:2px solid var(--ink);font-weight:700;font-size:15px}
+  .words-row td{background:var(--gold-bg);color:var(--gold);font-weight:700;letter-spacing:.3px}
+  .empty{color:var(--muted);text-align:center;padding:26px 0}
+  .toggle{display:inline-flex;border:1px solid var(--line);border-radius:9px;overflow:hidden}
+  .toggle button{border:0;border-radius:0;padding:7px 14px}
+  .toggle button.on{background:var(--head);color:#fff}
+  .toast{position:fixed;bottom:18px;left:50%;transform:translateX(-50%);background:var(--ink);color:#fff;
+         padding:10px 16px;border-radius:10px;opacity:0;transition:.2s;z-index:50;font-size:13px}
+  .toast.show{opacity:1}
+  .toast.err{background:#b91c1c}
+  .bar{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+  .hint{font-size:11px;color:var(--muted)}
+  .banner{background:#eff6ff;border:1px solid #bfdbfe;color:#1d4ed8;border-radius:10px;
+          padding:8px 12px;margin-bottom:12px;font-size:13px;display:flex;gap:10px;align-items:center}
+  .banner.warn{background:#fffbeb;border-color:#fde68a;color:#b45309}
+  .badge{display:inline-block;font-size:11px;font-weight:700;padding:2px 8px;border-radius:999px}
+  .badge.q{background:#dbeafe;color:#1d4ed8}
+  .badge.p{background:#dcfce7;color:#15803d}
+  .badge.old{background:#f3f4f6;color:#6b7280}
+  .srclink{font-size:11px;color:var(--muted);cursor:pointer;text-decoration:underline dotted}
+  .modal{position:fixed;inset:0;background:rgba(15,23,42,.45);display:none;z-index:40;align-items:flex-start;justify-content:center}
+  .modal.show{display:flex}
+  .modal .panel{background:#fff;border-radius:12px;margin:32px;width:min(1100px,95vw);max-height:88vh;overflow:auto;padding:18px}
+  .pm-table th,.pm-table td{font-size:12px;padding:5px}
+  .pm-table input{padding:4px 6px;font-size:12px}
+  .x{cursor:pointer;color:#dc2626;font-weight:700;padding:0 6px}
+  .view-kv{font-size:13px}
+  .view-kv b{display:inline-block;min-width:90px}
+  pre.view-desc{white-space:pre-wrap;font:12px/1.4 inherit;color:var(--muted);margin:2px 0 8px}
+  .bank-view{background:#f8fafc;border:1px dashed var(--line);border-radius:8px;padding:8px 12px;
+             font-size:12px;line-height:1.7;margin-top:8px}
+  .fee-tag{font-size:10px;font-weight:700;color:#9a3412;background:#ffedd5;border-radius:4px;padding:1px 5px;margin-right:4px}
+  .pgn{display:flex;gap:8px;align-items:center;justify-content:flex-end;margin-top:10px}
+</style>
+</head>
+<body>
+<header>
+  <span class="logo">niuera</span>
+  <span class="sub">报价 · PI 工作台</span>
+  <nav class="tabs">
+    <button id="tab-quote" class="on" onclick="switchTab('quote')">报价</button>
+    <button id="tab-pi" onclick="switchTab('pi')">PI</button>
+    <button id="tab-history" onclick="switchTab('history')">历史</button>
+    <button id="tab-settings" onclick="switchTab('settings')">设置</button>
+  </nav>
+  <span class="spacer"></span>
+  <button class="ghost" onclick="resetActive()">新建/清空</button>
+  <button class="ghost" onclick="openPM()">⚙ 产品管理</button>
+</header>
+
+<!-- ============ 报价 / PI 编辑区(共用左侧目录) ============ -->
+<div class="wrap" id="editorWrap">
+  <div class="col-left">
+    <div class="card">
+      <h3>产品目录 <span class="hint" id="catalogTarget">→ 报价</span></h3>
+      <input class="search" id="search" placeholder="搜索型号 / 名称 / 关键词…" oninput="renderCatalog()">
+      <div class="chips" id="chips"></div>
+      <div class="catalog" id="catalog"></div>
+    </div>
+  </div>
+
+  <!-- ---- 报价编辑页 ---- -->
+  <div class="col-right" id="page-quote">
+    <div class="banner" id="quoteReviseBanner" style="display:none"></div>
+    <div class="card">
+      <h3>客户信息 / Header</h3>
+      <div class="grid2">
+        <div><label class="req">客户公司 Customer</label><input id="customer"></div>
+        <div><label>联系人 Attn</label><input id="contact"></div>
+      </div>
+      <div class="grid3" style="margin-top:10px">
+        <div><label>编号 NO.</label><input id="pi_no"></div>
+        <div><label>日期 Date</label><input id="date"></div>
+        <div><label>币种 Currency</label>
+          <select id="currency"><option>USD</option><option>EUR</option><option>CNY</option></select></div>
+      </div>
+      <div class="grid2" style="margin-top:10px">
+        <div><label>报价人 From</label><input id="from_name" list="salesList" placeholder="选择或输入姓名">
+          <datalist id="salesList"></datalist></div>
+        <div style="display:flex;align-items:flex-end;gap:8px">
+          <div style="flex:1"><label>报价模式 Mode</label>
+            <div class="toggle">
+              <button id="m-std" class="on" onclick="setMode('standard')">标准 (数量+合计)</button>
+              <button id="m-tie" onclick="setMode('tiered')">分项 (按量分档)</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="bar" style="margin-bottom:10px">
+        <h3 style="margin:0">报价明细 / Items</h3>
+        <span class="spacer" style="flex:1"></span>
+        <button class="sm" onclick="addCustomItem()">+ 自定义产品</button>
+      </div>
+      <table id="itemsTable"><thead id="itemsHead"></thead><tbody id="itemsBody"></tbody></table>
+    </div>
+
+    <div class="card">
+      <h3>商务条款 / Commerce Terms <span class="hint">(已预填默认值,可改)</span></h3>
+      <div class="grid2">
+        <div><label>Origin 原产地</label><input id="t_origin"></div>
+        <div><label>Payment 付款</label><input id="t_payment"></div>
+        <div><label>Price Term 价格条款</label><input id="t_price_term"></div>
+        <div><label>Delivery Time 交期</label><input id="t_delivery_time"></div>
+        <div><label>Package 包装</label><input id="t_package"></div>
+        <div><label>Validity 有效期</label><input id="t_validity"></div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="bar">
+        <button class="primary" onclick="generate('xlsx')">⬇ 生成报价 (xlsx)</button>
+        <button onclick="generate('pdf')">导出 PDF</button>
+        <span class="hint">PDF 需本机装 LibreOffice;否则导 xlsx 后另存为 PDF。</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- ---- PI 编辑页 ---- -->
+  <div class="col-right" id="page-pi" style="display:none">
+    <div class="banner" id="piBanner" style="display:none"></div>
+    <div class="card">
+      <h3>客户信息 / Header <span class="badge p">Proforma Invoice</span></h3>
+      <div class="grid2">
+        <div><label class="req">客户公司 Customer</label><input id="pi_customer"></div>
+        <div><label>联系人 Attn</label><input id="pi_contact"></div>
+      </div>
+      <div class="grid3" style="margin-top:10px">
+        <div><label>PI 编号 NO.</label>
+          <div style="display:flex;gap:6px">
+            <input id="pi_doc_no" readonly value="(生成时自动取号)">
+            <button class="sm" id="piNewNoBtn" onclick="piUseNewNo()" style="display:none">改用新号</button>
+          </div>
+        </div>
+        <div><label>日期 Date</label><input id="pi_date"></div>
+        <div><label>币种 Currency</label>
+          <select id="pi_currency" onchange="renderBankSelect();recalcPi()"><option>USD</option><option>EUR</option><option>CNY</option></select></div>
+      </div>
+      <div class="grid2" style="margin-top:10px">
+        <div><label>报价人 From</label><input id="pi_from_name" list="salesList" placeholder="选择或输入姓名"></div>
+        <div></div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="bar" style="margin-bottom:10px">
+        <h3 style="margin:0">PI 明细 / Items</h3>
+        <span class="spacer" style="flex:1"></span>
+        <button class="sm" onclick="addPiProduct()">+ 自定义产品</button>
+        <button class="sm" onclick="addPiFee()">+ 费用行</button>
+      </div>
+      <table><thead>
+        <tr><th>#</th><th>Item / Description</th><th>Unit</th><th>Qty</th><th>Unit Price</th><th>Amount</th><th></th></tr>
+      </thead><tbody id="piItemsBody"></tbody></table>
+    </div>
+
+    <div class="card">
+      <h3>商务条款 / Commerce Terms <span class="hint">(PI 默认条款,可改)</span></h3>
+      <div class="grid2">
+        <div><label>Origin 原产地</label><input id="p_origin"></div>
+        <div><label>Payment 付款</label><input id="p_payment"></div>
+        <div><label>Price Term 价格条款</label><input id="p_price_term"></div>
+        <div><label>Delivery Time 交期</label><input id="p_delivery_time"></div>
+        <div><label>Package 包装</label><input id="p_package"></div>
+        <div><label>Validity 有效期 <span class="hint">(单据上红色显示)</span></label><input id="p_validity"></div>
+      </div>
+    </div>
+
+    <div class="card">
+      <h3>银行信息 &amp; 电子章</h3>
+      <div class="grid2">
+        <div><label>收款银行账户</label><select id="pi_bank" onchange="renderBankView()"></select>
+          <div class="bank-view" id="bankView"></div></div>
+        <div>
+          <label>&nbsp;</label>
+          <label style="display:flex;gap:8px;align-items:center;font-size:13px;color:var(--ink)">
+            <input type="checkbox" id="pi_stamp" style="width:auto"> 加盖电子章
+          </label>
+          <div class="hint" id="stampHint" style="margin-top:6px"></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="bar">
+        <button class="primary" onclick="generatePi('xlsx')">⬇ 生成 PI (xlsx)</button>
+        <button onclick="generatePi('pdf')">导出 PDF</button>
+        <span class="hint">生成前请核对下方大写金额。</span>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ============ 历史页 ============ -->
+<div class="full" id="page-history" style="display:none">
+  <div class="card">
+    <div class="bar" style="margin-bottom:12px">
+      <select id="h_type" style="width:130px" onchange="loadHistory(1)">
+        <option value="">全部类型</option><option value="quotation">报价</option><option value="pi">PI</option>
+      </select>
+      <select id="h_from" style="width:150px" onchange="loadHistory(1)"><option value="">全部报价人</option></select>
+      <input id="h_q" style="width:220px" placeholder="编号或客户名…" onkeydown="if(event.key==='Enter')loadHistory(1)">
+      <input id="h_df" type="date" style="width:150px" onchange="loadHistory(1)">
+      <span class="hint">至</span>
+      <input id="h_dt" type="date" style="width:150px" onchange="loadHistory(1)">
+      <button class="sm" onclick="loadHistory(1)">搜索</button>
+      <button class="sm ghost" onclick="clearHistoryFilter()">清空条件</button>
+      <span class="spacer" style="flex:1"></span>
+      <span class="hint" id="h_total"></span>
+    </div>
+    <table><thead>
+      <tr><th>编号</th><th>类型</th><th>报价人</th><th>客户</th><th>日期</th><th style="text-align:right">金额</th><th style="width:280px">操作</th></tr>
+    </thead><tbody id="historyBody"></tbody></table>
+    <div class="pgn">
+      <button class="sm" id="h_prev" onclick="loadHistory(H_PAGE-1)">‹ 上一页</button>
+      <span class="hint" id="h_page"></span>
+      <button class="sm" id="h_next" onclick="loadHistory(H_PAGE+1)">下一页 ›</button>
+    </div>
+  </div>
+</div>
+
+<!-- ============ 设置页 ============ -->
+<div class="full" id="page-settings" style="display:none">
+  <div class="card">
+    <h3>报价人列表 <span class="hint">(每行一个姓名;各销售在自己电脑上选过一次后会自动记住)</span></h3>
+    <textarea id="s_sales" style="height:90px;max-width:420px"></textarea>
+  </div>
+  <div class="card">
+    <div class="bar" style="margin-bottom:10px">
+      <h3 style="margin:0">银行账户 <span class="hint">(PI 单据上的收款信息)</span></h3>
+      <span class="spacer" style="flex:1"></span>
+      <button class="sm" onclick="addBank()">+ 新增账户</button>
+    </div>
+    <table class="pm-table"><thead>
+      <tr><th>默认</th><th>显示名</th><th>A/C BANK 户行*</th><th>ADDRESS 地址*</th><th>BENEFICIARY 收款人*</th><th>账号*</th><th>SWIFT*</th><th>币种</th><th></th></tr>
+    </thead><tbody id="bankBody"></tbody></table>
+  </div>
+  <div class="card">
+    <h3>电子章</h3>
+    <label style="display:flex;gap:8px;align-items:center;font-size:13px;color:var(--ink)">
+      <input type="checkbox" id="s_stamp" style="width:auto"> 新建 PI 默认加盖电子章
+    </label>
+    <div class="hint" style="margin-top:6px">章图放 <b>data/stamp.png</b>(背景透明 PNG,建议 ≥600px 宽)。缺图时 PI 照常生成,只是不带章。</div>
+  </div>
+  <div class="card"><div class="bar">
+    <button class="primary" onclick="saveSettings()">保存设置</button>
+    <span class="hint">保存后立即生效,无需重启。</span>
+  </div></div>
+</div>
+
+<!-- Product Management modal -->
+<div class="modal" id="pm">
+  <div class="panel">
+    <div class="bar" style="margin-bottom:12px">
+      <h3 style="margin:0">产品管理 · Products</h3>
+      <span class="spacer" style="flex:1"></span>
+      <button class="sm" onclick="addProduct()">+ 新增产品</button>
+      <button class="primary sm" onclick="saveProducts()">保存到 products.json</button>
+      <button class="sm" onclick="closePM()">关闭</button>
+    </div>
+    <div class="hint" style="margin-bottom:8px">选型名(红)= 你挑选用,带型号便于区分;对外名 = 报价单显示。描述支持多行(用 \n 或直接换行)。</div>
+    <table class="pm-table"><thead>
+      <tr><th>选型名*</th><th>对外名*</th><th>类别</th><th>单位</th><th>档①</th><th>价①</th><th>档②</th><th>价②</th><th>型号</th><th>图片</th><th>描述</th><th></th></tr>
+    </thead><tbody id="pmBody"></tbody></table>
+  </div>
+</div>
+
+<!-- 查看单据 modal -->
+<div class="modal" id="viewModal">
+  <div class="panel" style="width:min(760px,95vw)">
+    <div class="bar" style="margin-bottom:12px">
+      <h3 style="margin:0" id="viewTitle">单据详情</h3>
+      <span class="spacer" style="flex:1"></span>
+      <button class="sm" onclick="document.getElementById('viewModal').classList.remove('show')">关闭</button>
+    </div>
+    <div id="viewBody" class="view-kv"></div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+let PRODUCTS=[], DEFAULTS={}, DEFAULTS_PI={}, COMPANY={}, SALES=[], BANKS=[], STAMP={};
+let MODE="standard", ITEMS=[], CAT="全部", PMDATA=[], TAB="quote";
+let QUOTE_REV=0, QUOTE_ADVANCE=true, QUOTE_NO_FIXED=null, QUOTE_SOURCE=null;
+let PI_ITEMS=[], PI_REV=0, PI_NO=null, PI_SOURCE=null;
+let H_PAGE=1, SETTINGS_BANKS=[];
+
+const CATS=["全部","DC Charging Station 直流充电桩","AC Charger 交流充电桩","LEV DC Charger 轻型车直流充电桩","Charging Module 充电模块"];
+
+async function boot(){
+  const r=await fetch('/api/bootstrap'); const d=await r.json();
+  PRODUCTS=d.products; DEFAULTS=d.defaults; DEFAULTS_PI=d.defaults_pi||d.defaults;
+  COMPANY=d.company; SALES=d.sales_list||[]; BANKS=d.bank_accounts||[]; STAMP=d.stamp||{};
+  document.getElementById('pi_no').value=d.next_pi;
+  document.getElementById('date').value=d.today;
+  document.getElementById('pi_date').value=d.today;
+  const savedFrom=localStorage.getItem('niuera_from')||DEFAULTS.from_name||'';
+  document.getElementById('from_name').value=savedFrom;
+  document.getElementById('pi_from_name').value=savedFrom;
+  document.getElementById('currency').value=DEFAULTS.currency||'USD';
+  document.getElementById('pi_currency').value=DEFAULTS_PI.currency||'USD';
+  ['origin','payment','price_term','delivery_time','package','validity'].forEach(k=>{
+    document.getElementById('t_'+k).value=DEFAULTS[k]||'';
+    document.getElementById('p_'+k).value=DEFAULTS_PI[k]||'';
+  });
+  document.getElementById('pi_stamp').checked=STAMP.enabled_default!==false;
+  renderSalesDatalist(); renderBankSelect(); renderChips(); renderCatalog(); renderItems(); renderPiItems();
+}
+
+function renderSalesDatalist(){
+  const dl=document.getElementById('salesList'); dl.innerHTML='';
+  SALES.forEach(n=>{const o=document.createElement('option');o.value=n;dl.appendChild(o);});
+}
+
+function rememberFrom(name){
+  if(name) localStorage.setItem('niuera_from', name);
+}
+
+/* ---------------- tabs ---------------- */
+function switchTab(t){
+  TAB=t;
+  ['quote','pi','history','settings'].forEach(x=>{
+    document.getElementById('tab-'+x).className=x===t?'on':'';
+  });
+  document.getElementById('editorWrap').style.display=(t==='quote'||t==='pi')?'flex':'none';
+  document.getElementById('page-quote').style.display=t==='quote'?'block':'none';
+  document.getElementById('page-pi').style.display=t==='pi'?'block':'none';
+  document.getElementById('page-history').style.display=t==='history'?'block':'none';
+  document.getElementById('page-settings').style.display=t==='settings'?'block':'none';
+  document.getElementById('catalogTarget').textContent=t==='pi'?'→ PI':'→ 报价';
+  if(t==='history') loadHistory(H_PAGE);
+  if(t==='settings') renderSettings();
+}
+function resetActive(){
+  if(TAB==='pi') resetPi();
+  else if(TAB==='quote') resetQuote();
+}
+
+/* ---------------- catalog ---------------- */
+const CAT_LABEL={"全部":"全部",
+  "DC Charging Station 直流充电桩":"直流桩",
+  "AC Charger 交流充电桩":"交流桩",
+  "LEV DC Charger 轻型车直流充电桩":"LEV",
+  "Charging Module 充电模块":"模块"};
+function renderChips(){
+  const el=document.getElementById('chips'); el.innerHTML='';
+  CATS.forEach(c=>{
+    const b=document.createElement('span'); b.className='chip'+(c===CAT?' active':'');
+    b.textContent=CAT_LABEL[c]||c; b.title=c;
+    b.onclick=()=>{CAT=c;renderChips();renderCatalog()}; el.appendChild(b);
+  });
+}
+function renderCatalog(){
+  const q=(document.getElementById('search').value||'').toLowerCase();
+  const el=document.getElementById('catalog'); el.innerHTML='';
+  PRODUCTS.filter(p=>(CAT==="全部"||p.category===CAT) &&
+      (!q || (p.select+p.item+p.model+p.desc).toLowerCase().includes(q)))
+    .forEach(p=>{
+      const row=document.createElement('div'); row.className='pitem';
+      row.innerHTML=`<div class="meta"><div class="nm">${esc(p.select)}</div>
+        <div class="it">${esc(p.item)}</div>
+        <div class="pr">${p.price1!=null?(p.band1?p.band1+': ':'')+fmt(p.price1):'<span style="color:#b45309">未填价</span>'}</div></div>`;
+      const b=document.createElement('button'); b.className='sm primary'; b.textContent='添加';
+      b.onclick=()=>addItem(p.id); row.appendChild(b); el.appendChild(row);
+    });
+  if(!el.children.length) el.innerHTML='<div class="empty">无匹配产品</div>';
+}
+
+function addItem(id){
+  const p=PRODUCTS.find(x=>x.id===id); if(!p) return;
+  if(TAB==='pi'){
+    PI_ITEMS.push({line_type:'product',item:p.item,desc:p.desc,unit:p.unit,qty:1,unit_price:p.price1});
+    renderPiItems(); return;
+  }
+  ITEMS.push({id:p.id,item:p.item,desc:p.desc,unit:p.unit,
+    image:p.image||'',
+    qty:1, unit_price:p.price1,
+    band1:p.band1,price1:p.price1,band2:p.band2,price2:p.price2});
+  renderItems();
+}
+function addCustomItem(){
+  ITEMS.push({id:'',item:'',desc:'',unit:'PCS',image:'',
+    qty:1, unit_price:'',
+    band1:'1+',price1:'',band2:'',price2:''});
+  renderItems();
+  toast('已添加自定义产品');
+}
+function removeItem(i){ITEMS.splice(i,1);renderItems();}
+
+function setMode(m){MODE=m;
+  document.getElementById('m-std').className=m==='standard'?'on':'';
+  document.getElementById('m-tie').className=m==='tiered'?'on':'';
+  renderItems();
+}
+
+/* ---------------- quote items table ---------------- */
+function renderItems(){
+  const head=document.getElementById('itemsHead'), body=document.getElementById('itemsBody');
+  const cur=document.getElementById('currency').value;
+  const colCount=MODE==='standard'?7:6;
+  if(MODE==='standard'){
+    head.innerHTML=`<tr><th>#</th><th>Item / Description</th><th>Unit</th><th>Qty</th><th>Unit Price (${cur})</th><th>Amount</th><th></th></tr>`;
+  }else{
+    head.innerHTML=`<tr><th>#</th><th>Item / Description</th><th>Unit</th><th>档① / Price①</th><th>档② / Price②</th><th></th></tr>`;
+  }
+  body.innerHTML='';
+  if(!ITEMS.length){body.innerHTML=`<tr><td colspan="${colCount}"><div class="empty">从左侧目录「添加」产品,或点「自定义产品」</div></td></tr>`;return;}
+  let total=0;
+  ITEMS.forEach((it,i)=>{
+    const tr=document.createElement('tr');
+    const nameCell=`<td>
+        <input class="line-input" value="${escAttr(it.item??'')}" placeholder="报价单产品名称" oninput="upd(${i},'item',this.value)">
+        <textarea class="desc-input" placeholder="报价单描述" oninput="upd(${i},'desc',this.value)">${esc(it.desc??'')}</textarea>
+        <div class="mini-row"><label>图片文件</label><input value="${escAttr(it.image??'')}" placeholder="可留空" oninput="upd(${i},'image',this.value)"></div>
+      </td>`;
+    if(MODE==='standard'){
+      const amt=(!isBlankPrice(it.qty)&&!isBlankPrice(it.unit_price))?num(it.qty)*num(it.unit_price):null;
+      if(amt!=null) total+=amt;
+      tr.innerHTML=`<td>${i+1}</td>${nameCell}
+        <td><input style="width:70px" value="${escAttr(it.unit??'PCS')}" oninput="upd(${i},'unit',this.value)"></td>
+        <td><input class="num" type="number" min="0" value="${it.qty??''}" oninput="upd(${i},'qty',this.value)"></td>
+        <td><input class="num" type="number" min="0" step="0.01" value="${it.unit_price??''}" oninput="upd(${i},'unit_price',this.value)"></td>
+        <td class="amt" id="amt-${i}">${amt!=null?fmt(amt):'—'}</td>
+        <td><span class="x" onclick="removeItem(${i})">✕</span></td>`;
+    }else{
+      tr.innerHTML=`<td>${i+1}</td>${nameCell}
+        <td><input style="width:70px" value="${escAttr(it.unit??'PCS')}" oninput="upd(${i},'unit',this.value)"></td>
+        <td><input style="width:70px" value="${escAttr(it.band1??'')}" oninput="upd(${i},'band1',this.value)">
+            <input class="num" type="number" step="0.01" value="${it.price1??''}" oninput="upd(${i},'price1',this.value)"></td>
+        <td><input style="width:70px" value="${escAttr(it.band2??'')}" oninput="upd(${i},'band2',this.value)">
+            <input class="num" type="number" step="0.01" value="${it.price2??''}" oninput="upd(${i},'price2',this.value)"></td>
+        <td><span class="x" onclick="removeItem(${i})">✕</span></td>`;
+    }
+    body.appendChild(tr);
+  });
+  if(MODE==='standard'){
+    const tr=document.createElement('tr'); tr.className='total-row';
+    tr.innerHTML=`<td colspan="5" style="text-align:right">Total (${cur})</td><td class="amt" id="grandtotal">${fmt(total)}</td><td></td>`;
+    body.appendChild(tr);
+  }
+}
+function upd(i,k,v){
+  ITEMS[i][k]=v;
+  if(MODE==='standard') recalcTotals();
+}
+function recalcTotals(){
+  let total=0;
+  ITEMS.forEach((it,i)=>{
+    const amt=(!isBlankPrice(it.qty)&&!isBlankPrice(it.unit_price))?num(it.qty)*num(it.unit_price):null;
+    if(amt!=null) total+=amt;
+    const cell=document.getElementById('amt-'+i);
+    if(cell) cell.textContent=amt!=null?fmt(amt):'—';
+  });
+  const gt=document.getElementById('grandtotal');
+  if(gt) gt.textContent=fmt(total);
+}
+
+function isBlankPrice(v){return v===null||v===undefined||String(v).trim()===''||isNaN(Number(v));}
+function validatePrices(){
+  for(let i=0;i<ITEMS.length;i++){
+    const it=ITEMS[i], label=it.item||('第 '+(i+1)+' 项');
+    if(!String(it.item??'').trim()){
+      toast('第 '+(i+1)+' 项产品名称未填',true); return false;
+    }
+    if(MODE==='standard' && isBlankPrice(it.unit_price)){
+      toast('第 '+(i+1)+' 项 '+label+' 单价未填',true); return false;
+    }
+    if(MODE==='tiered'){
+      if(isBlankPrice(it.price1)){
+        toast('第 '+(i+1)+' 项 '+label+' 价格档①未填',true); return false;
+      }
+      if(String(it.band2??'').trim() && isBlankPrice(it.price2)){
+        toast('第 '+(i+1)+' 项 '+label+' 价格档②未填',true); return false;
+      }
+    }
+  }
+  return true;
+}
+
+async function refreshNextPi(){
+  const b=await (await fetch('/api/bootstrap')).json();
+  document.getElementById('pi_no').value=b.next_pi;
+}
+
+async function generate(fmt){
+  const customer=document.getElementById('customer').value.trim();
+  if(!customer){toast('请填写客户公司',true);return;}
+  if(!ITEMS.length){toast('请至少添加一个产品',true);return;}
+  if(!validatePrices()) return;
+  const fromName=document.getElementById('from_name').value.trim();
+  const payload={
+    doc_type:'quotation',
+    mode:MODE, fmt:fmt,
+    advance_pi:QUOTE_ADVANCE,
+    revision:QUOTE_REV,
+    source:QUOTE_SOURCE,
+    customer:customer,
+    contact:document.getElementById('contact').value.trim(),
+    pi_no:(QUOTE_NO_FIXED||document.getElementById('pi_no').value.trim()),
+    date:document.getElementById('date').value.trim(),
+    from_name:fromName,
+    currency:document.getElementById('currency').value,
+    items:ITEMS.map(it=>MODE==='standard'
+      ?{id:it.id,item:it.item,desc:it.desc,unit:it.unit,image:it.image,qty:it.qty,unit_price:it.unit_price}
+      :{id:it.id,item:it.item,desc:it.desc,unit:it.unit,image:it.image,band1:it.band1,price1:it.price1,band2:it.band2,price2:it.price2}),
+    terms:{origin:val('t_origin'),payment:val('t_payment'),price_term:val('t_price_term'),
+           delivery_time:val('t_delivery_time'),package:val('t_package'),validity:val('t_validity')}
+  };
+  toast('生成中…');
+  const ok=await postGenerate(payload,fmt,'quotation');
+  if(ok){
+    rememberFrom(fromName);
+    QUOTE_REV=0;QUOTE_ADVANCE=true;QUOTE_NO_FIXED=null;QUOTE_SOURCE=null;
+    document.getElementById('quoteReviseBanner').style.display='none';
+    await refreshNextPi();
+  }
+}
+
+async function postGenerate(payload,fmt,kind){
+  const r=await fetch('/api/generate',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(payload)});
+  const ct=r.headers.get('content-type')||'';
+  if(ct.includes('application/json')){
+    const d=await r.json();
+    toast(d.error||'已生成',!!d.error);
+    if(d.fallback_xlsx){
+      toast('PDF 不可用,请改用 xlsx',true);
+      await refreshNextPi();
+    }
+    return false;
+  }
+  const blob=await r.blob();
+  const cd=r.headers.get('content-disposition')||''; let fn=kind+'.'+fmt;
+  const m=cd.match(/filename\*?=(?:UTF-8'')?\"?([^\";]+)/i); if(m) fn=decodeURIComponent(m[1]);
+  const url=URL.createObjectURL(blob); const a=document.createElement('a');
+  a.href=url; a.download=fn; a.click(); URL.revokeObjectURL(url);
+  toast('已导出 '+fn);
+  return true;
+}
+
+function resetQuote(){
+  ITEMS=[]; document.getElementById('customer').value=''; document.getElementById('contact').value='';
+  QUOTE_REV=0;QUOTE_ADVANCE=true;QUOTE_NO_FIXED=null;QUOTE_SOURCE=null;
+  document.getElementById('quoteReviseBanner').style.display='none';
+  refreshNextPi();
+  renderItems(); toast('已清空');
+}
+
+/* ---------------- PI editor ---------------- */
+function addPiProduct(){
+  PI_ITEMS.push({line_type:'product',item:'',desc:'',unit:'PCS',qty:1,unit_price:''});
+  renderPiItems();
+}
+function addPiFee(){
+  PI_ITEMS.push({line_type:'fee',item:'',desc:'',amount:''});
+  renderPiItems();
+}
+function removePiItem(i){PI_ITEMS.splice(i,1);renderPiItems();}
+function updPi(i,k,v){PI_ITEMS[i][k]=v;recalcPi();}
+
+function renderPiItems(){
+  const body=document.getElementById('piItemsBody'); body.innerHTML='';
+  const cur=document.getElementById('pi_currency').value;
+  if(!PI_ITEMS.length){
+    body.innerHTML='<tr><td colspan="7"><div class="empty">从左侧目录「添加」产品,或点「自定义产品 / 费用行」</div></td></tr>';
+    updateWordsRow(0); return;
+  }
+  PI_ITEMS.forEach((it,i)=>{
+    const tr=document.createElement('tr');
+    if(it.line_type==='fee'){
+      tr.innerHTML=`<td>${i+1}</td>
+        <td><span class="fee-tag">费用</span>
+          <input class="line-input" style="width:calc(100% - 46px);display:inline-block" value="${escAttr(it.item??'')}" placeholder="费用名称,如 FOB Inland Fee" oninput="updPi(${i},'item',this.value)">
+          <textarea class="desc-input" style="height:52px" placeholder="费用说明(英文,单据上跨列显示)" oninput="updPi(${i},'desc',this.value)">${esc(it.desc??'')}</textarea></td>
+        <td class="hint">—</td><td class="hint">—</td><td class="hint">—</td>
+        <td><input class="num" type="number" min="0" step="0.01" value="${it.amount??''}" oninput="updPi(${i},'amount',this.value)"></td>
+        <td><span class="x" onclick="removePiItem(${i})">✕</span></td>`;
+    }else{
+      const amt=(!isBlankPrice(it.qty)&&!isBlankPrice(it.unit_price))?num(it.qty)*num(it.unit_price):null;
+      tr.innerHTML=`<td>${i+1}</td>
+        <td><input class="line-input" value="${escAttr(it.item??'')}" placeholder="产品名称" oninput="updPi(${i},'item',this.value)">
+          <textarea class="desc-input" placeholder="描述" oninput="updPi(${i},'desc',this.value)">${esc(it.desc??'')}</textarea></td>
+        <td><input style="width:70px" value="${escAttr(it.unit??'PCS')}" oninput="updPi(${i},'unit',this.value)"></td>
+        <td><input class="num" type="number" min="0" value="${it.qty??''}" oninput="updPi(${i},'qty',this.value)"></td>
+        <td><input class="num" type="number" min="0" step="0.01" value="${it.unit_price??''}" oninput="updPi(${i},'unit_price',this.value)"></td>
+        <td class="amt" id="pi-amt-${i}">${amt!=null?fmt(amt):'—'}</td>
+        <td><span class="x" onclick="removePiItem(${i})">✕</span></td>`;
+    }
+    body.appendChild(tr);
+  });
+  const totalTr=document.createElement('tr'); totalTr.className='total-row';
+  totalTr.innerHTML=`<td colspan="5" style="text-align:right">Total (${cur})</td><td class="amt" id="piGrandtotal">0.00</td><td></td>`;
+  body.appendChild(totalTr);
+  const wordsTr=document.createElement('tr'); wordsTr.className='words-row';
+  wordsTr.innerHTML=`<td colspan="7" style="text-align:center" id="piWords">—</td>`;
+  body.appendChild(wordsTr);
+  recalcPi();
+}
+
+function piTotal(){
+  let total=0;
+  PI_ITEMS.forEach(it=>{
+    if(it.line_type==='fee'){ if(!isBlankPrice(it.amount)) total+=num(it.amount); }
+    else if(!isBlankPrice(it.qty)&&!isBlankPrice(it.unit_price)) total+=num(it.qty)*num(it.unit_price);
+  });
+  return Math.round(total*100)/100;
+}
+
+let wordsTimer=null;
+function recalcPi(){
+  PI_ITEMS.forEach((it,i)=>{
+    if(it.line_type!=='fee'){
+      const amt=(!isBlankPrice(it.qty)&&!isBlankPrice(it.unit_price))?num(it.qty)*num(it.unit_price):null;
+      const cell=document.getElementById('pi-amt-'+i);
+      if(cell) cell.textContent=amt!=null?fmt(amt):'—';
+    }
+  });
+  const total=piTotal();
+  const gt=document.getElementById('piGrandtotal');
+  if(gt) gt.textContent=fmt(total);
+  updateWordsRow(total);
+}
+function updateWordsRow(total){
+  const el=document.getElementById('piWords'); if(!el) return;
+  if(total<=0){el.textContent='—';return;}
+  clearTimeout(wordsTimer);
+  wordsTimer=setTimeout(async()=>{
+    try{
+      const r=await fetch('/api/amount_words?value='+encodeURIComponent(total));
+      const d=await r.json();
+      el.textContent=d.words||'—';
+    }catch(e){el.textContent='—';}
+  },400);
+}
+
+function piUseNewNo(){
+  PI_NO=null;
+  document.getElementById('pi_doc_no').value='(生成时自动取号)';
+  document.getElementById('piNewNoBtn').style.display='none';
+  toast('将在生成时自动取新号');
+}
+function setPiNo(no){
+  PI_NO=no||null;
+  document.getElementById('pi_doc_no').value=no||'(生成时自动取号)';
+  document.getElementById('piNewNoBtn').style.display=no?'inline-block':'none';
+}
+
+function renderBankSelect(){
+  const sel=document.getElementById('pi_bank'); const cur=document.getElementById('pi_currency').value;
+  const prev=sel.value;
+  sel.innerHTML='';
+  BANKS.forEach(b=>{
+    const o=document.createElement('option');
+    o.value=b.id; o.textContent=(b.label||b.ac_bank)+(b.currency?' ['+b.currency+']':'');
+    sel.appendChild(o);
+  });
+  // prefer: previous choice -> currency match -> default -> first
+  let pick=BANKS.find(b=>b.id===prev)||BANKS.find(b=>b.currency===cur)||BANKS.find(b=>b.is_default)||BANKS[0];
+  if(pick) sel.value=pick.id;
+  renderBankView();
+}
+function renderBankView(){
+  const b=BANKS.find(x=>x.id===document.getElementById('pi_bank').value);
+  const el=document.getElementById('bankView');
+  if(!b){el.innerHTML='<span style="color:#b91c1c">未配置银行账户,请到设置页添加</span>';return;}
+  el.innerHTML=`A/C BANK: ${esc(b.ac_bank||'')}<br>ADDRESS: ${esc(b.address||'')}<br>BENEFICIARY: ${esc(b.beneficiary||'')}<br>BNF'S A/C: ${esc(b.account_no||'')}<br>SWIFT CODE: ${esc(b.swift||'')}`;
+  const cur=document.getElementById('pi_currency').value;
+  if(b.currency&&b.currency!==cur){
+    el.innerHTML+=`<br><span style="color:#b45309">⚠ 账户币种 ${esc(b.currency)} 与单据币种 ${esc(cur)} 不一致</span>`;
+  }
+}
+
+function validatePi(){
+  const customer=document.getElementById('pi_customer').value.trim();
+  if(!customer){toast('请填写客户抬头',true);return false;}
+  if(!PI_ITEMS.length){toast('PI 不能为空单',true);return false;}
+  for(let i=0;i<PI_ITEMS.length;i++){
+    const it=PI_ITEMS[i];
+    if(it.line_type==='fee'){
+      if(!String(it.item??'').trim()){toast('费用行第 '+(i+1)+' 行名称未填',true);return false;}
+      if(isBlankPrice(it.amount)){toast('费用行第 '+(i+1)+' 行金额未填',true);return false;}
+    }else{
+      if(!String(it.item??'').trim()){toast('第 '+(i+1)+' 行产品名称未填',true);return false;}
+      if(isBlankPrice(it.qty)||num(it.qty)<=0){toast('第 '+(i+1)+' 行数量未填或为 0',true);return false;}
+      if(isBlankPrice(it.unit_price)||num(it.unit_price)<=0){toast('第 '+(i+1)+' 行单价未填或为 0',true);return false;}
+    }
+  }
+  if(piTotal()<=0){toast('合计为 0,不能开 PI',true);return false;}
+  const b=BANKS.find(x=>x.id===document.getElementById('pi_bank').value);
+  if(!b){toast('请先到设置页添加银行账户',true);return false;}
+  const cur=document.getElementById('pi_currency').value;
+  if(b.currency&&b.currency!==cur){
+    if(!confirm('所选银行账户币种 '+b.currency+' 与单据币种 '+cur+' 不一致,确认继续?')) return false;
+  }
+  return true;
+}
+
+async function generatePi(fmt){
+  if(!validatePi()) return;
+  const fromName=document.getElementById('pi_from_name').value.trim();
+  const payload={
+    doc_type:'pi', fmt:fmt,
+    advance_pi:!PI_NO,
+    pi_no:PI_NO||'',
+    revision:PI_REV,
+    source:PI_SOURCE,
+    customer:document.getElementById('pi_customer').value.trim(),
+    contact:document.getElementById('pi_contact').value.trim(),
+    date:document.getElementById('pi_date').value.trim(),
+    from_name:fromName,
+    currency:document.getElementById('pi_currency').value,
+    bank_account_id:document.getElementById('pi_bank').value,
+    stamp:document.getElementById('pi_stamp').checked,
+    items:PI_ITEMS.map(it=>it.line_type==='fee'
+      ?{line_type:'fee',item:it.item,desc:it.desc,amount:it.amount}
+      :{line_type:'product',item:it.item,desc:it.desc,unit:it.unit,qty:it.qty,unit_price:it.unit_price}),
+    terms:{origin:val('p_origin'),payment:val('p_payment'),price_term:val('p_price_term'),
+           delivery_time:val('p_delivery_time'),package:val('p_package'),validity:val('p_validity')}
+  };
+  toast('生成中…');
+  const ok=await postGenerate(payload,fmt,'pi');
+  if(ok){
+    rememberFrom(fromName);
+    toast('PI 已生成并入档');
+    resetPiState();
+  }
+}
+function resetPiState(){
+  PI_REV=0;PI_SOURCE=null;setPiNo(null);
+  document.getElementById('piBanner').style.display='none';
+}
+function resetPi(){
+  PI_ITEMS=[];
+  document.getElementById('pi_customer').value='';
+  document.getElementById('pi_contact').value='';
+  resetPiState();
+  ['origin','payment','price_term','delivery_time','package','validity'].forEach(k=>{
+    document.getElementById('p_'+k).value=DEFAULTS_PI[k]||'';
+  });
+  renderPiItems(); toast('已清空');
+}
+
+/* ---------------- history ---------------- */
+async function loadHistory(page){
+  H_PAGE=Math.max(1,page||1);
+  const params=new URLSearchParams();
+  const t=document.getElementById('h_type').value; if(t)params.set('type',t);
+  const f=document.getElementById('h_from').value; if(f)params.set('from',f);
+  const q=document.getElementById('h_q').value.trim(); if(q)params.set('q',q);
+  const df=document.getElementById('h_df').value; if(df)params.set('date_from',df);
+  const dt=document.getElementById('h_dt').value; if(dt)params.set('date_to',dt);
+  params.set('page',H_PAGE);
+  const r=await fetch('/api/documents?'+params.toString());
+  const d=await r.json();
+  renderFromOptions(d.from_options||[]);
+  renderHistory(d);
+}
+function clearHistoryFilter(){
+  ['h_q','h_df','h_dt'].forEach(id=>document.getElementById(id).value='');
+  document.getElementById('h_type').value='';
+  document.getElementById('h_from').value='';
+  loadHistory(1);
+}
+function renderFromOptions(opts){
+  const sel=document.getElementById('h_from'); const prev=sel.value;
+  sel.innerHTML='<option value="">全部报价人</option>';
+  opts.forEach(o=>{const e=document.createElement('option');e.value=o;e.textContent=o;sel.appendChild(e);});
+  sel.value=prev;
+}
+function renderHistory(d){
+  const body=document.getElementById('historyBody'); body.innerHTML='';
+  document.getElementById('h_total').textContent='共 '+d.total+' 条';
+  const pages=Math.max(1,Math.ceil(d.total/d.page_size));
+  document.getElementById('h_page').textContent=d.page+' / '+pages;
+  document.getElementById('h_prev').disabled=d.page<=1;
+  document.getElementById('h_next').disabled=d.page>=pages;
+  if(!d.entries.length){body.innerHTML='<tr><td colspan="7"><div class="empty">没有符合条件的单据</div></td></tr>';return;}
+  d.entries.forEach(e=>{
+    const tr=document.createElement('tr');
+    const rev=e.revision?` <span class="hint">R${e.revision}</span>`:'';
+    const badge=e.doc_type==='pi'?'<span class="badge p">PI</span>':'<span class="badge q">报价</span>';
+    const oldTag=e.archived_only?' <span class="badge old" title="迁移旧档,无明细数据">旧档</span>':'';
+    const src=e.source_no?`<div class="srclink" onclick="searchNo('${escAttr(e.source_no)}')">源: ${esc(e.source_no)}</div>`:'';
+    const amount=e.amount!=null?fmt(e.amount):'—';
+    let ops=`<button class="sm" onclick="downloadDoc('${escAttr(e.no)}','${e.doc_type}',${e.revision})">下载</button> `;
+    ops+=`<button class="sm" onclick="viewDoc('${escAttr(e.no)}','${e.doc_type}',${e.revision})">查看</button> `;
+    if(e.doc_type==='quotation'){
+      ops+=e.archived_only
+        ?`<button class="sm" disabled title="旧单无明细,请手工新建 PI">转为 PI</button> `
+        :`<button class="sm primary" onclick="convertToPi('${escAttr(e.no)}',${e.revision})">转为 PI</button> `;
+    }
+    ops+=e.archived_only
+      ?`<button class="sm" disabled title="旧单无明细,无法复制">复制新版</button>`
+      :`<button class="sm" onclick="reviseDoc('${escAttr(e.no)}','${e.doc_type}',${e.revision})">复制新版</button>`;
+    tr.innerHTML=`<td><b>${esc(e.no)}</b>${rev}${src}</td>
+      <td>${badge}${oldTag}</td>
+      <td>${esc(e.from_name||'—')}</td>
+      <td>${esc(e.customer||'—')}</td>
+      <td>${esc(e.date||'')}</td>
+      <td class="amt">${amount}</td>
+      <td>${ops}</td>`;
+    body.appendChild(tr);
+  });
+}
+function searchNo(no){
+  document.getElementById('h_q').value=no;
+  document.getElementById('h_type').value='';
+  loadHistory(1);
+}
+function downloadDoc(no,type,rev){
+  window.open('/api/documents/'+encodeURIComponent(no)+'/'+type+'/'+rev+'/download','_blank');
+}
+async function viewDoc(no,type,rev){
+  const r=await fetch('/api/documents/'+encodeURIComponent(no)+'/'+type+'/'+rev);
+  const d=await r.json();
+  if(d.error){toast(d.error,true);return;}
+  document.getElementById('viewTitle').textContent=(type==='pi'?'PI ':'报价 ')+no+(rev?' R'+rev:'');
+  let h=`<p><b>客户:</b>${esc(d.customer||'—')} <b style="margin-left:16px">联系人:</b>${esc(d.contact||'—')}</p>
+    <p><b>报价人:</b>${esc(d.from_name||'—')} <b style="margin-left:16px">日期:</b>${esc(d.date||'—')}
+       <b style="margin-left:16px">币种:</b>${esc(d.currency||'—')}</p>`;
+  if(d.source&&d.source.no) h+=`<p><b>源单:</b>${esc(d.source.no)} (${d.source.doc_type})</p>`;
+  if(d.archived_only){
+    h+=`<p class="hint">迁移旧档,无明细数据。${d.legacy_file?'原文件: '+esc(d.legacy_file):''}</p>`;
+  }else if(d.items&&d.items.length){
+    h+='<table style="margin-top:6px"><tr><th>#</th><th>Item</th><th>Qty</th><th>单价</th><th>金额</th></tr>';
+    d.items.forEach((it,i)=>{
+      if(it.line_type==='fee'){
+        h+=`<tr><td>${i+1}</td><td><span class="fee-tag">费用</span>${esc(it.item)}</td><td>—</td><td>—</td><td class="amt">${it.amount!=null?fmt(it.amount):'—'}</td></tr>`;
+      }else if(it.band1!==undefined&&it.qty===undefined){
+        h+=`<tr><td>${i+1}</td><td>${esc(it.item)}</td><td colspan="3">档① ${esc(it.band1??'')}: ${it.price1!=null?fmt(it.price1):'—'}  档② ${esc(it.band2??'')}: ${it.price2!=null?fmt(it.price2):'—'}</td></tr>`;
+      }else{
+        const amt=(it.qty!=null&&it.unit_price!=null)?it.qty*it.unit_price:null;
+        h+=`<tr><td>${i+1}</td><td>${esc(it.item)}</td><td>${it.qty??'—'}</td><td>${it.unit_price!=null?fmt(it.unit_price):'—'}</td><td class="amt">${amt!=null?fmt(amt):'—'}</td></tr>`;
+      }
+    });
+    h+='</table>';
+    if(d.totals&&d.totals.amount!=null) h+=`<p style="text-align:right"><b>合计: ${fmt(d.totals.amount)}</b>${d.totals.amount_words?'<br><span style="color:var(--gold)">'+esc(d.totals.amount_words)+'</span>':''}</p>`;
+  }
+  document.getElementById('viewBody').innerHTML=h;
+  document.getElementById('viewModal').classList.add('show');
+}
+
+async function convertToPi(no,rev){
+  const r=await fetch('/api/documents/convert-to-pi',{method:'POST',
+    headers:{'Content-Type':'application/json'},body:JSON.stringify({no:no,revision:rev})});
+  const d=await r.json();
+  if(d.error){toast(d.error,true);return;}
+  let useSame=false;
+  if(d.pi_exists){
+    alert('编号 '+no+' 已有 PI 存在,将自动取新号。');
+  }else{
+    useSame=confirm('沿用报价编号 '+no+' 开 PI?\n\n【确定】沿用编号  【取消】生成时取新号');
+  }
+  fillPiFromPrefill(d, useSame?no:null);
+  switchTab('pi');
+  if(d.tiered_source){
+    const b=document.getElementById('piBanner');
+    b.className='banner warn';
+    b.style.display='flex';
+    b.textContent='⚠ 源报价为阶梯报价:数量需要补填,单价已按价格档①预填,请核对成交数量与单价。';
+  }
+  toast('已载入报价 '+no+' 的数据,请补充费用行并核对');
+}
+function fillPiFromPrefill(d,no){
+  document.getElementById('pi_customer').value=d.customer||'';
+  document.getElementById('pi_contact').value=d.contact||'';
+  document.getElementById('pi_from_name').value=d.from_name||localStorage.getItem('niuera_from')||'';
+  document.getElementById('pi_currency').value=d.currency||'USD';
+  ['origin','payment','price_term','delivery_time','package','validity'].forEach(k=>{
+    document.getElementById('p_'+k).value=(d.terms&&d.terms[k])||DEFAULTS_PI[k]||'';
+  });
+  PI_ITEMS=(d.items||[]).map(it=>({...it}));
+  PI_REV=d.revision||0;
+  PI_SOURCE=d.source||null;
+  setPiNo(no);
+  renderBankSelect();
+  renderPiItems();
+  const b=document.getElementById('piBanner');
+  b.className='banner'; b.style.display='none';
+}
+
+async function reviseDoc(no,type,rev){
+  const r=await fetch('/api/documents/revise',{method:'POST',
+    headers:{'Content-Type':'application/json'},body:JSON.stringify({no:no,doc_type:type,revision:rev})});
+  const d=await r.json();
+  if(d.error){toast(d.error,true);return;}
+  if(type==='pi'){
+    fillPiFromPrefill(d,no);
+    document.getElementById('pi_date').value=todayStr();
+    if(d.bank_account_id){document.getElementById('pi_bank').value=d.bank_account_id;renderBankView();}
+    document.getElementById('pi_stamp').checked=!!d.stamp;
+    switchTab('pi');
+    const b=document.getElementById('piBanner');
+    b.className='banner'; b.style.display='flex';
+    b.textContent='正在编辑 '+no+' 的新版本 R'+d.revision+',生成后原版本保持不变。';
+  }else{
+    MODE=d.mode||'standard'; setMode(MODE);
+    document.getElementById('customer').value=d.customer||'';
+    document.getElementById('contact').value=d.contact||'';
+    document.getElementById('from_name').value=d.from_name||'';
+    document.getElementById('currency').value=d.currency||'USD';
+    document.getElementById('date').value=todayStr();
+    document.getElementById('pi_no').value=no;
+    ['origin','payment','price_term','delivery_time','package','validity'].forEach(k=>{
+      document.getElementById('t_'+k).value=(d.terms&&d.terms[k])||DEFAULTS[k]||'';
+    });
+    ITEMS=(d.items||[]).map(it=>({...it}));
+    QUOTE_REV=d.revision; QUOTE_ADVANCE=false; QUOTE_NO_FIXED=no; QUOTE_SOURCE=d.source||null;
+    renderItems();
+    switchTab('quote');
+    const b=document.getElementById('quoteReviseBanner');
+    b.style.display='flex';
+    b.textContent='正在编辑报价 '+no+' 的新版本 R'+d.revision+',生成后原版本保持不变。';
+  }
+  toast('已载入 '+no+',保存时生成 R'+d.revision);
+}
+
+/* ---------------- settings ---------------- */
+function renderSettings(){
+  document.getElementById('s_sales').value=SALES.join('\n');
+  document.getElementById('s_stamp').checked=STAMP.enabled_default!==false;
+  SETTINGS_BANKS=JSON.parse(JSON.stringify(BANKS));
+  renderBankTable();
+}
+function renderBankTable(){
+  const body=document.getElementById('bankBody'); body.innerHTML='';
+  SETTINGS_BANKS.forEach((b,i)=>{
+    const tr=document.createElement('tr');
+    const f=(k,w)=>`<td><input style="width:${w}px" value="${escAttr(b[k]??'')}" oninput="SETTINGS_BANKS[${i}]['${k}']=this.value"></td>`;
+    tr.innerHTML=`<td style="text-align:center"><input type="radio" name="bankDefault" style="width:auto" ${b.is_default?'checked':''} onchange="setDefaultBank(${i})"></td>`+
+      f('label',110)+f('ac_bank',170)+f('address',190)+f('beneficiary',150)+f('account_no',110)+f('swift',100)+
+      `<td><select style="width:70px" onchange="SETTINGS_BANKS[${i}].currency=this.value">
+        ${['USD','EUR','CNY'].map(c=>`<option ${b.currency===c?'selected':''}>${c}</option>`).join('')}</select></td>`+
+      `<td><span class="x" onclick="SETTINGS_BANKS.splice(${i},1);renderBankTable()">✕</span></td>`;
+    body.appendChild(tr);
+  });
+}
+function setDefaultBank(i){
+  SETTINGS_BANKS.forEach((b,j)=>b.is_default=(j===i));
+}
+function addBank(){
+  SETTINGS_BANKS.push({id:'',label:'',ac_bank:'',address:'',beneficiary:'',account_no:'',swift:'',currency:'USD',is_default:!SETTINGS_BANKS.length});
+  renderBankTable();
+}
+async function saveSettings(){
+  const sales=document.getElementById('s_sales').value.split('\n').map(s=>s.trim()).filter(Boolean);
+  const payload={
+    sales_list:sales,
+    bank_accounts:SETTINGS_BANKS,
+    stamp:{enabled_default:document.getElementById('s_stamp').checked}
+  };
+  const r=await fetch('/api/config',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(payload)});
+  const d=await r.json();
+  if(d.error){toast(d.error,true);return;}
+  SALES=sales; BANKS=JSON.parse(JSON.stringify(SETTINGS_BANKS));
+  STAMP.enabled_default=payload.stamp.enabled_default;
+  renderSalesDatalist(); renderBankSelect();
+  toast('设置已保存');
+}
+
+/* ---------------- product management ---------------- */
+function openPM(){PMDATA=JSON.parse(JSON.stringify(PRODUCTS));renderPM();document.getElementById('pm').classList.add('show');}
+function closePM(){document.getElementById('pm').classList.remove('show');}
+function renderPM(){
+  const b=document.getElementById('pmBody'); b.innerHTML='';
+  PMDATA.forEach((p,i)=>{
+    const tr=document.createElement('tr');
+    const f=(k,w)=>`<td><input style="width:${w}px" value="${escAttr(p[k]??'')}" oninput="PMDATA[${i}]['${k}']=this.value"></td>`;
+    tr.innerHTML=f('select',150)+f('item',150)+
+      `<td><input style="width:90px" value="${escAttr(p.category??'')}" oninput="PMDATA[${i}]['category']=this.value"></td>`+
+      f('unit',40)+f('band1',55)+f('price1',60)+f('band2',55)+f('price2',60)+f('model',110)+
+      `<td style="text-align:center">
+         ${p.image?`<img src="/api/img/${encodeURIComponent(p.image)}?t=${Date.now()}" style="width:48px;height:48px;object-fit:contain;border:1px solid var(--line);border-radius:6px">`:`<span class="hint">无</span>`}
+         <br><button class="sm" onclick="pickImage(${i})">上传</button>
+         ${p.image?`<button class="sm" onclick="PMDATA[${i}].image='';renderPM()">清除</button>`:''}
+       </td>`+
+      `<td><textarea style="width:200px;height:38px" oninput="PMDATA[${i}]['desc']=this.value">${esc(p.desc??'')}</textarea></td>`+
+      `<td><span class="x" onclick="PMDATA.splice(${i},1);renderPM()">✕</span></td>`;
+    b.appendChild(tr);
+  });
+}
+function addProduct(){
+  const n=PMDATA.length+1;
+  PMDATA.push({id:'P'+String(Date.now()).slice(-6),select:'',item:'',category:'Charging Module 充电模块',
+    desc:'',unit:'PCS',band1:'1+',price1:null,band2:null,price2:null,model:'',image:''});
+  renderPM();
+}
+function pickImage(i){
+  const inp=document.createElement('input'); inp.type='file'; inp.accept='image/*';
+  inp.onchange=async()=>{
+    const file=inp.files[0]; if(!file) return;
+    const fd=new FormData(); fd.append('file',file);
+    const hint=(PMDATA[i].model||PMDATA[i].select||('P'+i)).replace(/[^A-Za-z0-9_.\-]/g,'_');
+    fd.append('name_hint',hint);
+    toast('上传中…');
+    const r=await fetch('/api/upload_image',{method:'POST',body:fd});
+    const d=await r.json();
+    if(d.error){toast(d.error,true);return;}
+    PMDATA[i].image=d.filename; renderPM(); toast('图片已绑定');
+  };
+  inp.click();
+}
+async function saveProducts(){
+  // normalize numbers
+  PMDATA.forEach(p=>{['price1','price2'].forEach(k=>{p[k]=p[k]===''||p[k]==null?null:Number(p[k]);});});
+  const r=await fetch('/api/products',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({products:PMDATA})});
+  const d=await r.json();
+  if(d.error){toast(d.error,true);return;}
+  PRODUCTS=PMDATA; toast('已保存 '+d.count+' 个产品'); renderChips(); renderCatalog(); closePM();
+}
+
+/* ---------------- helpers ---------------- */
+function val(id){return document.getElementById(id).value.trim();}
+function num(v){const n=parseFloat(v);return isNaN(n)?0:n;}
+function fmt(n){return Number(n).toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2});}
+function esc(s){return String(s).replace(/[&<>]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;'}[c]));}
+function escAttr(s){return String(s).replace(/"/g,'&quot;').replace(/</g,'&lt;');}
+function todayStr(){const d=new Date();return d.getFullYear()+'/'+String(d.getMonth()+1).padStart(2,'0')+'/'+String(d.getDate()).padStart(2,'0');}
+let toastT;
+function toast(msg,err){const t=document.getElementById('toast');t.textContent=msg;t.className='toast show'+(err?' err':'');
+  clearTimeout(toastT);toastT=setTimeout(()=>t.className='toast',2600);}
+document.getElementById('currency').addEventListener('change',renderItems);
+boot();
+</script>
+</body>
+</html>

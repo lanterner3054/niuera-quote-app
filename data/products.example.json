@@ -1,0 +1,30 @@
+[
+ {
+  "id": "P001",
+  "select": "示例产品 3.2kW 模块",
+  "item": "3.2kW AC/DC Charging Module",
+  "category": "Charging Module 充电模块",
+  "desc": "Rated input voltage: 220Vac\nRated output voltage: +48Vdc\nRated output power: 3.2kW",
+  "unit": "PCS",
+  "band1": "1-10",
+  "price1": 100.0,
+  "band2": "10+",
+  "price2": 95.0,
+  "model": "MOD-32-48",
+  "image": ""
+ },
+ {
+  "id": "P002",
+  "select": "示例产品 7kW 交流桩",
+  "item": "7kW AC Charger",
+  "category": "AC Charger 交流充电桩",
+  "desc": "Input: Single phase 220V\nOutput: 7kW max\nProtection: IP54",
+  "unit": "PCS",
+  "band1": "1+",
+  "price1": 200.0,
+  "band2": null,
+  "price2": null,
+  "model": "AC-7K",
+  "image": ""
+ }
+]

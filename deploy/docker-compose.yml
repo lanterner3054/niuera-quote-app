@@ -1,0 +1,30 @@
+services:
+  quote-app:
+    build: .
+    container_name: quote-app
+    restart: unless-stopped
+    expose:
+      - "8000"
+    volumes:
+      - ./data:/app/data
+      - ./output:/app/output
+      - ./legacy:/app/legacy:ro
+    environment:
+      - TZ=Asia/Shanghai
+
+  quote-caddy:
+    image: caddy:2
+    container_name: quote-caddy
+    restart: unless-stopped
+    ports:
+      - "9443:9443"
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile:ro
+      - caddy_data:/data
+      - caddy_config:/config
+    depends_on:
+      - quote-app
+
+volumes:
+  caddy_data:
+  caddy_config:
