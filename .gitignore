@@ -21,3 +21,6 @@ __pycache__/
 build/
 *.spec
 *.bak*
+
+# ---- 本地运维手册(含服务器 IP,勿入公开库) ----
+CLAUDE.md
