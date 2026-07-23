@@ -33,8 +33,10 @@ os.makedirs(OUTPUT, exist_ok=True)
 
 from engine.quote_engine import generate_quote
 from engine.pi_engine import generate_pi, compute_total
+from engine.customs_engine import generate_customs_pack, compute_customs_totals
 from engine.amount_words import amount_to_words
 from engine.docstore import DocStore, DuplicateKeyError, DocStoreError
+from engine.archive import archive_document, verify_ledger
 
 app = FastAPI(title="NIUERA Quote Workbench")
 DOCSTORE = DocStore(DATA)
@@ -133,6 +135,7 @@ def bootstrap():
         "next_pi": _peek_next_no(config)[0],
         "today": datetime.date.today().strftime("%Y/%m/%d"),
         "products": products,
+        "customs": config.get("customs", {}),
     }
 
 
@@ -212,9 +215,11 @@ def generate(payload: dict = Body(...)):
     try:
         if doc_type == "pi":
             return _generate_pi(payload)
+        if doc_type == "customs":
+            return _generate_customs(payload)
         return _generate_quotation(payload)
     except DuplicateKeyError:
-        hint = "PI" if doc_type == "pi" else "报价"
+        hint = {"pi": "PI", "customs": "报关资料"}.get(doc_type, "报价")
         return JSONResponse({"error": f"该编号的{hint}已存在。如需修改请在历史页用「复制为新版」。"},
                             status_code=409)
     except DocStoreError as e:
@@ -282,8 +287,9 @@ def _generate_quotation(payload):
         DOCSTORE.save_document(doc)
         if claimed_seq is not None:
             _commit_seq(config, claimed_seq)
+        _archive_safe(doc, out_path)
 
-    return _file_or_pdf_response(payload, out_path, fname, quote["pi_no"])
+    return _file_or_pdf_response(payload, out_path, fname, quote["pi_no"], revision)
 
 
 def _pi_validation_error(items, total, bank, customer):
@@ -380,15 +386,201 @@ def _generate_pi(payload):
         DOCSTORE.save_document(doc)
         if claimed_seq is not None:
             _commit_seq(config, claimed_seq)
+        _archive_safe(doc, out_path)
 
-    return _file_or_pdf_response(payload, out_path, fname, no)
+    return _file_or_pdf_response(payload, out_path, fname, no, revision)
 
 
-def _file_or_pdf_response(payload, out_path, fname, no):
+CUSTOMS_SHIPMENT_KEYS = (
+    "origin_text", "payment", "delivery_terms", "delivery_place", "qty_unit",
+    "trade_country", "arrival_country", "dest_port", "transport_mode",
+    "trade_mode", "freight", "insurance", "misc_fee",
+    "package_kind", "marks", "exit_customs",
+)
+
+
+def _customs_validation_error(no, customer, items):
+    if not no:
+        return "报关资料必须先选择一张 PI(沿用其编号),不能凭空生成"
+    if not customer:
+        return "请填写客户抬头 (Customer Company)"
+    if not items:
+        return "报关资料不能没有商品行"
+    for idx, it in enumerate(items, 1):
+        if not it["item"]:
+            return f"第 {idx} 行英文品名为空"
+        if not it["qty"] or it["qty"] <= 0:
+            return f"第 {idx} 行数量缺失或为 0"
+        if not it["unit_price"] or it["unit_price"] <= 0:
+            return f"第 {idx} 行单价缺失或为 0"
+        if not it["hs_code"]:
+            return f"第 {idx} 行 HS 商品编号为空(报关单必填)"
+        if not it["cn_name"]:
+            return f"第 {idx} 行报关中文品名为空(报关单必填)"
+    return None
+
+
+def _generate_customs(payload):
+    config = _load("config.json")
+    items = []
+    for raw in payload.get("items", []):
+        items.append({
+            "item": str(raw.get("item") or "").strip(),
+            "qty": _num(raw.get("qty")),
+            "unit_price": _num(raw.get("unit_price")),
+            "hs_code": str(raw.get("hs_code") or "").strip(),
+            "cn_name": str(raw.get("cn_name") or "").strip(),
+            "customs_unit": str(raw.get("customs_unit") or "").strip() or "个",
+            "cartons": _num(raw.get("cartons")),
+            "size": str(raw.get("size") or "").strip(),
+            "gw": _num(raw.get("gw")),
+            "nw": _num(raw.get("nw")),
+        })
+    no = str(payload.get("no") or payload.get("pi_no") or "").strip()
+    customer = str(payload.get("customer") or "").strip()
+    err = _customs_validation_error(no, customer, items)
+    if err:
+        return JSONResponse({"error": err}, status_code=400)
+
+    shipment = payload.get("shipment") or {}
+    shipment = {k: str(shipment.get(k) or "").strip() for k in CUSTOMS_SHIPMENT_KEYS}
+    # 成交方式 + 目的地 唯一入口;发票 TERMS OF DELIVERY 由两者拼出
+    if not shipment["delivery_terms"]:
+        shipment["delivery_terms"] = " ".join(
+            x for x in (shipment["trade_mode"], shipment["delivery_place"]) if x)
+    revision = max(0, _int_or(payload.get("revision"), 0))
+    doc_date = payload.get("date", datetime.date.today().strftime("%Y/%m/%d"))
+
+    with DOCSTORE.lock():
+        if DOCSTORE.exists(no, "customs", revision):
+            raise DuplicateKeyError(no)
+        date_compact = str(doc_date).replace("/", "").replace("-", "")
+        rev_sfx = f"-R{revision}" if revision else ""
+        fname = f"customs_{date_compact}_{_safe(no) or 'NA'}{rev_sfx}.zip"
+        out_path = os.path.join(OUTPUT, fname)
+        doc = {
+            "no": no, "doc_type": "customs", "revision": revision,
+            "source": _source_triple(payload),
+            "date": doc_date,
+            "from_name": payload.get("from_name", ""),
+            "currency": payload.get("currency", "USD"),
+            "customer": customer, "contact": payload.get("contact", ""),
+            "customer_address": str(payload.get("customer_address") or "").strip(),
+            "items": items, "shipment": shipment,
+            "stamp": bool(payload.get("stamp",
+                          config.get("stamp", {}).get("enabled_default", True))),
+            "totals": compute_customs_totals(items),
+            "file": os.path.join("output", fname).replace("\\", "/"),
+            "legacy_file": None, "archived_only": False,
+        }
+        generate_customs_pack(config, doc, out_path, base_dir=DATA)
+        DOCSTORE.save_document(doc)
+        _archive_safe(doc, out_path)
+
+    return FileResponse(out_path, filename=fname, media_type="application/zip")
+
+
+@app.post("/api/customs/prefill")
+def customs_prefill(payload: dict = Body(...)):
+    """报关资料预填:已有报关档 -> 返回其最新版(revision+1,继承地址/重量);
+    否则从最新版 PI 映射,产品库匹配到的带出报关字段。不落库、不占号。"""
+    no = str(payload.get("no") or "").strip()
+    if not no:
+        return JSONResponse({"error": "请提供 PI 编号"}, status_code=400)
+
+    latest_customs = _latest_revision(no, "customs")
+    if latest_customs is not None:
+        doc = DOCSTORE.get_document(no, "customs", latest_customs)
+        if doc and not doc.get("archived_only"):
+            prefill = dict(doc)
+            prefill["revision"] = latest_customs + 1
+            prefill["customs_exists"] = True
+            for k in ("created_at", "file", "legacy_file"):
+                prefill.pop(k, None)
+            return prefill
+
+    rev = payload.get("revision")
+    if rev is None:
+        rev = _latest_revision(no, "pi")
+    if rev is None:
+        return JSONResponse({"error": "找不到该 PI"}, status_code=404)
+    doc = DOCSTORE.get_document(no, "pi", int(rev))
+    if doc is None:
+        return JSONResponse({"error": "找不到该 PI"}, status_code=404)
+    # 旧档 PI(无明细)不拦死:编号/客户/日期照带,商品行留空由前端手工补
+    pi_no_items = bool(doc.get("archived_only") or not doc.get("items"))
+
+    config = _load("config.json")
+    products = _load("products.json")
+    cus = config.get("customs", {})
+    by_item = {p.get("item"): p for p in products}
+    items, fee_total = [], 0.0
+    for it in (doc.get("items") or []):
+        if it.get("line_type") == "fee":
+            fee_total += float(it.get("amount") or 0)
+            continue
+        p = by_item.get(it.get("item"), {})
+        items.append({
+            "item": it.get("item", ""),
+            "qty": it.get("qty"), "unit_price": it.get("unit_price"),
+            "hs_code": p.get("hs_code", ""),
+            "cn_name": p.get("cn_name", ""),
+            "customs_unit": p.get("customs_unit", "") or "个",
+            "cartons": None, "size": "", "gw": None, "nw": None,
+        })
+    defaults = cus.get("defaults", {})
+    # PI 价格条款 "CFR Winnen" -> 成交方式 CFR + 目的地 Winnen(一处填,两单取用)
+    price_term = str((doc.get("terms") or {}).get("price_term", "")).strip()
+    m = re.match(r"([A-Za-z]{3})\b\s*(.*)", price_term)
+    trade_mode, delivery_place = (m.group(1).upper(), m.group(2).strip()) if m else ("", price_term)
+    return {
+        "doc_type": "customs",
+        "no": no, "revision": 0,
+        "customer": doc.get("customer", ""), "contact": doc.get("contact", ""),
+        "customer_address": "",
+        "from_name": doc.get("from_name", ""),
+        "currency": doc.get("currency", "USD"),
+        "date": doc.get("date", ""),
+        "items": items,
+        "shipment": {
+            "origin_text": defaults.get("origin_text", "CHINA"),
+            "payment": defaults.get("payment", "T/T"),
+            "delivery_terms": price_term,
+            "delivery_place": delivery_place,
+            "qty_unit": defaults.get("qty_unit", "SET"),
+            "trade_country": "", "arrival_country": "", "dest_port": "",
+            "transport_mode": defaults.get("transport_mode", "航空运输"),
+            "trade_mode": trade_mode,
+            "freight": (str(round(fee_total, 2)).rstrip("0").rstrip(".")
+                        if fee_total else ""),
+            "insurance": "", "misc_fee": "",
+            "package_kind": defaults.get("package_kind", "纸箱"),
+            "marks": defaults.get("marks", "N/M"),
+            "exit_customs": defaults.get("exit_customs", ""),
+        },
+        "stamp": bool(config.get("stamp", {}).get("enabled_default", True)),
+        "source": {"no": no, "doc_type": "pi", "revision": int(rev)},
+        "customs_exists": False,
+        "pi_no_items": pi_no_items,
+    }
+
+
+def _archive_safe(doc, path, with_snapshot=True):
+    """留档失败只记日志,不阻断生成主流程。"""
+    try:
+        return archive_document(DATA, doc, path, with_snapshot=with_snapshot)
+    except Exception as e:
+        print(f"[archive] 留档失败 {path}: {e}", flush=True)
+        return None
+
+
+def _file_or_pdf_response(payload, out_path, fname, no, revision=0):
     fmt = payload.get("fmt", "xlsx")
     if fmt == "pdf":
         pdf_path = _to_pdf(out_path)
         if pdf_path and os.path.exists(pdf_path):
+            _archive_safe({"no": no, "doc_type": payload.get("doc_type", "quotation"),
+                           "revision": revision}, pdf_path, with_snapshot=False)
             out_path, fname = pdf_path, os.path.basename(pdf_path)
         else:
             return JSONResponse({"error": "PDF 转换需要本机安装 LibreOffice;已生成 xlsx,可手动另存为 PDF。",
@@ -398,7 +590,8 @@ def _file_or_pdf_response(payload, out_path, fname, no):
                                 status_code=200)
     media = ("application/pdf" if fname.endswith(".pdf")
              else "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet")
-    return FileResponse(out_path, filename=fname, media_type=media)
+    return FileResponse(out_path, filename=fname, media_type=media,
+                        headers={"X-Doc-No": str(no), "X-Doc-Rev": str(revision)})
 
 
 def _to_pdf(xlsx_path):
@@ -446,7 +639,7 @@ def get_document(no: str, doc_type: str, rev: int):
 
 
 @app.get("/api/documents/{no}/{doc_type}/{rev}/download")
-def download_document(no: str, doc_type: str, rev: int):
+def download_document(no: str, doc_type: str, rev: int, fmt: str = Query(None)):
     doc = DOCSTORE.get_document(no, doc_type, rev)
     if doc is None:
         return JSONResponse({"error": "单据不存在"}, status_code=404)
@@ -456,8 +649,22 @@ def download_document(no: str, doc_type: str, rev: int):
             continue
         full = p if os.path.isabs(p) else os.path.join(_exe_dir(), p)
         if os.path.exists(full):
-            media = ("application/pdf" if full.lower().endswith(".pdf")
-                     else "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet")
+            low = full.lower()
+            if fmt == "pdf" and low.endswith(".xlsx"):
+                pdf = full[:-5] + ".pdf"
+                if not os.path.exists(pdf) or os.path.getmtime(pdf) < os.path.getmtime(full):
+                    pdf = _to_pdf(full)
+                if not (pdf and os.path.exists(pdf)):
+                    return JSONResponse({"error": "PDF 转换需要本机安装 LibreOffice,请下载 xlsx。"},
+                                        status_code=422)
+                _archive_safe(doc, pdf, with_snapshot=False)
+                full, low = pdf, pdf.lower()
+            if low.endswith(".pdf"):
+                media = "application/pdf"
+            elif low.endswith(".zip"):
+                media = "application/zip"
+            else:
+                media = "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
             return FileResponse(full, filename=os.path.basename(full), media_type=media)
     return JSONResponse({"error": "文件已被移动或删除,无法下载(存档数据仍可查看)"}, status_code=404)
 
@@ -528,6 +735,13 @@ def revise_document(payload: dict = Body(...)):
     prefill.pop("file", None)
     prefill.pop("legacy_file", None)
     return prefill
+
+
+@app.get("/api/archive/verify")
+def archive_verify():
+    """校验留档台账哈希链与全部留档文件完整性。"""
+    ok, problems, count = verify_ledger(DATA)
+    return {"ok": ok, "entries": count, "problems": problems}
 
 
 @app.get("/api/amount_words")

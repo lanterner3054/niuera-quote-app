@@ -6,108 +6,180 @@
 <title>NIUERA 报价工作台</title>
 <style>
   :root{
-    --green:#6BAE2E; --green-d:#578F24; --ink:#1f2430; --muted:#6b7280;
-    --line:#e5e7eb; --bg:#f6f7f9; --card:#ffffff; --head:#1F4E78; --warn:#b45309;
-    --gold:#b45309; --gold-bg:#fef3c7;
+    --sans:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"PingFang SC","Microsoft YaHei",sans-serif;
+    --mono:ui-monospace,"SF Mono",SFMono-Regular,Menlo,"Cascadia Mono",Consolas,"Liberation Mono",monospace;
+    --bg:#0d1017; --bg-2:#0a0d13; --card:#141824; --surface:#10141e; --raise:#1a2030;
+    --line:#232a3a; --line-2:#1b2130;
+    --ink:#dfe4ee; --muted:#8b95a9; --faint:#5f6a80;
+    --cy:#3fdccb; --cy-d:#2fb8aa; --cy-bg:rgba(63,220,203,.10); --cy-line:rgba(63,220,203,.30);
+    --iris:#8b95f6; --iris-bg:rgba(139,149,246,.12);
+    --gold:#e6b567; --gold-bg:rgba(230,181,103,.10); --err:#f4776e; --err-bg:rgba(244,119,110,.12);
+    --warn:#e6b567; --warn-bg:rgba(230,181,103,.10);
+    --glow:0 0 0 1px var(--cy-line),0 0 18px -8px rgba(63,220,203,.55);
+    --shadow-sm:0 1px 2px rgba(0,0,0,.4);
+    --shadow:0 1px 2px rgba(0,0,0,.4),0 16px 40px -26px rgba(0,0,0,.8);
+    --r:10px; --r-sm:7px;
   }
   *{box-sizing:border-box}
-  body{margin:0;font-family:-apple-system,"Segoe UI",Roboto,"PingFang SC","Microsoft YaHei",sans-serif;
-       background:var(--bg);color:var(--ink);font-size:14px}
-  header{background:var(--card);border-bottom:1px solid var(--line);padding:10px 18px;
-         display:flex;align-items:center;gap:14px;position:sticky;top:0;z-index:20}
-  header .logo{font-weight:800;color:var(--green);font-size:18px;letter-spacing:.5px}
-  header .sub{color:var(--muted);font-size:12px}
+  html{-webkit-text-size-adjust:100%}
+  body{margin:0;font-family:var(--sans);color:var(--ink);font-size:14px;line-height:1.55;
+       -webkit-font-smoothing:antialiased;padding-bottom:34px;min-height:100vh;
+       background:
+         radial-gradient(1100px 560px at 88% -10%, rgba(139,149,246,.10), transparent 60%),
+         radial-gradient(1000px 620px at 2% -4%, rgba(63,220,203,.08), transparent 58%),
+         linear-gradient(180deg,#0e121b,var(--bg-2) 70%);
+       background-attachment:fixed}
+  body::before{content:"";position:fixed;inset:0;pointer-events:none;z-index:0;opacity:.5;
+       background-image:
+         linear-gradient(rgba(120,150,200,.028) 1px,transparent 1px),
+         linear-gradient(90deg,rgba(120,150,200,.028) 1px,transparent 1px);
+       background-size:52px 52px}
+  body>*{position:relative;z-index:1}
+  ::selection{background:var(--cy-bg);color:var(--ink)}
+  :focus-visible{outline:2px solid var(--cy);outline-offset:2px}
+  header{background:rgba(16,20,30,.82);backdrop-filter:blur(12px);border-bottom:1px solid var(--line);
+         padding:11px 20px;display:flex;align-items:center;gap:16px;position:sticky;top:0;z-index:20;
+         box-shadow:0 1px 0 rgba(63,220,203,.10)}
+  header .logo{font-family:var(--mono);font-weight:600;color:var(--ink);font-size:16px;letter-spacing:.5px;
+         display:flex;align-items:center;gap:9px}
+  header .logo .logo-mark{color:var(--cy);font-size:15px;text-shadow:0 0 12px rgba(63,220,203,.6);line-height:1}
+  header .sub{color:var(--muted);font-size:11.5px;font-family:var(--mono);letter-spacing:.4px}
   header .spacer{flex:1}
-  .tabs{display:flex;gap:4px}
-  .tabs button{border:0;background:transparent;padding:8px 14px;border-radius:8px;font-weight:600;color:var(--muted)}
-  .tabs button.on{background:var(--head);color:#fff}
-  button{font:inherit;cursor:pointer;border-radius:8px;border:1px solid var(--line);
-          background:#fff;padding:7px 12px;color:var(--ink)}
-  button:hover{border-color:#cbd5e1}
-  button.primary{background:var(--green);border-color:var(--green);color:#fff;font-weight:600}
-  button.primary:hover{background:var(--green-d)}
-  button.ghost{background:transparent}
-  button.sm{padding:4px 8px;font-size:12px}
-  button:disabled{opacity:.45;cursor:not-allowed}
-  .wrap{display:flex;gap:16px;padding:16px;align-items:flex-start}
-  .col-left{width:340px;flex:none;position:sticky;top:64px}
+  .tabs{display:flex;gap:3px}
+  .tabs button{border:1px solid transparent;background:transparent;padding:7px 15px;border-radius:var(--r-sm);
+         font-weight:500;color:var(--muted);font-size:13.5px;letter-spacing:.5px;transition:.15s}
+  .tabs button:hover{color:var(--ink);background:var(--raise)}
+  .tabs button.on{background:var(--cy-bg);color:var(--cy);border-color:var(--cy-line);
+         box-shadow:inset 0 0 12px -6px rgba(63,220,203,.5)}
+  button{font:inherit;cursor:pointer;border-radius:var(--r-sm);border:1px solid var(--line);
+          background:var(--raise);padding:7px 13px;color:var(--ink);font-weight:500;transition:.15s}
+  button:hover{border-color:var(--cy-line);color:var(--cy)}
+  button:active{transform:translateY(.5px)}
+  button.primary{background:var(--cy-bg);border-color:var(--cy-line);color:var(--cy);font-weight:600;
+          box-shadow:0 0 16px -7px rgba(63,220,203,.6)}
+  button.primary:hover{background:rgba(63,220,203,.18);box-shadow:0 0 20px -5px rgba(63,220,203,.7)}
+  button.ghost{background:transparent;border-color:transparent;color:var(--muted)}
+  button.ghost:hover{background:var(--raise);color:var(--ink)}
+  button.sm{padding:4px 9px;font-size:12px}
+  button:disabled{opacity:.4;cursor:not-allowed;box-shadow:none}
+  button:disabled:hover{background:var(--raise);border-color:var(--line);color:var(--ink);transform:none}
+  .wrap{display:flex;gap:16px;padding:18px;align-items:flex-start;max-width:1520px;margin:0 auto}
+  .col-left{width:340px;flex:none;position:sticky;top:66px}
   .col-right{flex:1;min-width:0}
-  .full{padding:16px}
-  .card{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:14px;margin-bottom:14px}
-  .card h3{margin:0 0 10px;font-size:13px;color:var(--muted);text-transform:uppercase;letter-spacing:.4px}
-  label{display:block;font-size:12px;color:var(--muted);margin:0 0 3px}
-  input,select,textarea{width:100%;font:inherit;padding:7px 9px;border:1px solid var(--line);
-        border-radius:8px;background:#fff;color:var(--ink)}
-  input:focus,select:focus,textarea:focus{outline:none;border-color:var(--green)}
-  input[readonly]{background:#f3f4f6;color:var(--muted)}
+  .full{padding:18px;max-width:1520px;margin:0 auto}
+  .card{background:linear-gradient(180deg,var(--card),rgba(16,20,30,.9));border:1px solid var(--line);
+        border-radius:var(--r);padding:16px;margin-bottom:16px;box-shadow:var(--shadow);position:relative}
+  .card h3{margin:0 0 12px;font-size:11px;color:var(--cy);text-transform:uppercase;letter-spacing:1.4px;
+        font-weight:600;font-family:var(--mono);display:flex;align-items:center;gap:8px}
+  label{display:block;font-size:12px;color:var(--muted);margin:0 0 4px;font-weight:500}
+  input,select,textarea{width:100%;font:inherit;padding:8px 10px;border:1px solid var(--line);
+        border-radius:var(--r-sm);background:var(--surface);color:var(--ink);transition:.15s}
+  input::placeholder,textarea::placeholder{color:var(--faint)}
+  input:focus,select:focus,textarea:focus{outline:none;border-color:var(--cy);box-shadow:var(--glow);background:var(--bg-2)}
+  input[readonly]{background:var(--bg-2);color:var(--muted);cursor:default}
+  input[readonly]:focus{box-shadow:none;border-color:var(--line)}
+  input[type=number],.num,.amt{font-family:var(--mono);font-variant-numeric:tabular-nums}
+  input[type=checkbox],input[type=radio]{accent-color:var(--cy);width:auto}
+  select option{background:#141824;color:var(--ink)}
   .grid2{display:grid;grid-template-columns:1fr 1fr;gap:10px}
   .grid3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px}
-  .req::after{content:" *";color:#dc2626}
+  .req::after{content:" *";color:var(--err)}
   .search{margin-bottom:10px}
   .chips{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:10px}
-  .chip{font-size:12px;padding:4px 9px;border-radius:999px;border:1px solid var(--line);background:#fff;cursor:pointer}
-  .chip.active{background:var(--ink);color:#fff;border-color:var(--ink)}
-  .catalog{max-height:62vh;overflow:auto;border-top:1px solid var(--line)}
-  .pitem{padding:9px 4px;border-bottom:1px solid var(--line);display:flex;gap:8px;align-items:flex-start}
-  .pitem .nm{font-weight:600;color:#b91c1c;font-size:12.5px}
+  .chip{font-size:12px;padding:4px 11px;border-radius:999px;border:1px solid var(--line);
+        background:var(--surface);cursor:pointer;color:var(--muted);transition:.15s}
+  .chip:hover{border-color:var(--cy-line);color:var(--ink)}
+  .chip.active{background:var(--cy-bg);color:var(--cy);border-color:var(--cy-line);font-weight:600}
+  .catalog{max-height:62vh;overflow:auto;border-top:1px solid var(--line);margin-top:2px}
+  .pitem{padding:10px 4px;border-bottom:1px solid var(--line-2);display:flex;gap:8px;align-items:flex-start;transition:.12s}
+  .pitem:hover{background:var(--surface)}
+  .pitem .nm{font-weight:600;color:var(--ink);font-size:12.5px}
   .pitem .it{color:var(--muted);font-size:12px}
-  .pitem .pr{color:var(--green-d);font-size:12px;font-weight:600}
+  .pitem .pr{color:var(--cy);font-size:12px;font-weight:600;font-family:var(--mono)}
   .pitem .meta{flex:1;min-width:0}
   .pitem button{flex:none}
   table{width:100%;border-collapse:collapse}
-  th,td{text-align:left;padding:7px 6px;border-bottom:1px solid var(--line);vertical-align:top}
-  th{font-size:11px;color:var(--muted);text-transform:uppercase;font-weight:600}
+  th,td{text-align:left;padding:9px 8px;border-bottom:1px solid var(--line-2);vertical-align:top}
+  th{font-size:10.5px;color:var(--muted);text-transform:uppercase;font-weight:600;letter-spacing:.8px;
+        font-family:var(--mono);border-bottom:1px solid var(--line)}
+  tbody tr:hover td{background:var(--surface)}
   td .item-nm{font-weight:600}
-  td input{padding:5px 7px}
+  td input{padding:6px 8px}
   .line-input{margin-bottom:6px;font-weight:600}
-  .desc-input{height:88px;min-width:260px;font-size:12px;line-height:1.35;resize:vertical}
+  .desc-input{height:88px;min-width:260px;font-size:12px;line-height:1.4;resize:vertical;font-family:var(--sans)}
   .mini-row{display:grid;grid-template-columns:80px 1fr;gap:6px;margin-top:6px;align-items:center}
   .mini-row label{margin:0}
   .mini-row input{font-size:12px}
   .num{width:88px;text-align:right}
-  .amt{font-variant-numeric:tabular-nums;text-align:right;white-space:nowrap}
-  .total-row td{border-top:2px solid var(--ink);font-weight:700;font-size:15px}
-  .words-row td{background:var(--gold-bg);color:var(--gold);font-weight:700;letter-spacing:.3px}
-  .empty{color:var(--muted);text-align:center;padding:26px 0}
-  .toggle{display:inline-flex;border:1px solid var(--line);border-radius:9px;overflow:hidden}
-  .toggle button{border:0;border-radius:0;padding:7px 14px}
-  .toggle button.on{background:var(--head);color:#fff}
-  .toast{position:fixed;bottom:18px;left:50%;transform:translateX(-50%);background:var(--ink);color:#fff;
-         padding:10px 16px;border-radius:10px;opacity:0;transition:.2s;z-index:50;font-size:13px}
+  .amt{text-align:right;white-space:nowrap;color:var(--ink)}
+  .total-row td{border-top:2px solid var(--cy-line);border-bottom:none;font-weight:700;font-size:15px;color:var(--cy);
+        font-family:var(--mono);font-variant-numeric:tabular-nums;padding-top:11px;text-shadow:0 0 14px rgba(63,220,203,.35)}
+  .total-row td:first-child{font-family:var(--sans);color:var(--ink)}
+  .words-row td{background:var(--gold-bg);color:var(--gold);font-weight:600;letter-spacing:.2px;border-bottom:none;
+        border-top:1px solid rgba(230,181,103,.28)}
+  .empty{color:var(--muted);text-align:center;padding:28px 0;font-family:var(--mono);letter-spacing:.4px}
+  .toggle{display:inline-flex;border:1px solid var(--line);border-radius:var(--r-sm);overflow:hidden;background:var(--surface)}
+  .toggle button{border:0;border-radius:0;padding:7px 15px;background:transparent;color:var(--muted)}
+  .toggle button:hover{background:var(--raise);color:var(--ink)}
+  .toggle button.on{background:var(--cy-bg);color:var(--cy)}
+  .toggle button.on:hover{background:var(--cy-bg)}
+  .toast{position:fixed;bottom:44px;left:50%;transform:translateX(-50%);background:var(--raise);color:var(--cy);
+         border:1px solid var(--cy-line);padding:11px 18px;border-radius:var(--r);opacity:0;transition:.2s;z-index:50;
+         font-size:13px;font-family:var(--mono);box-shadow:0 0 26px -8px rgba(63,220,203,.5);pointer-events:none}
   .toast.show{opacity:1}
-  .toast.err{background:#b91c1c}
+  .toast.err{background:var(--raise);color:var(--err);border-color:rgba(244,119,110,.5);box-shadow:0 0 26px -8px rgba(244,119,110,.5)}
   .bar{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
-  .hint{font-size:11px;color:var(--muted)}
-  .banner{background:#eff6ff;border:1px solid #bfdbfe;color:#1d4ed8;border-radius:10px;
-          padding:8px 12px;margin-bottom:12px;font-size:13px;display:flex;gap:10px;align-items:center}
-  .banner.warn{background:#fffbeb;border-color:#fde68a;color:#b45309}
-  .badge{display:inline-block;font-size:11px;font-weight:700;padding:2px 8px;border-radius:999px}
-  .badge.q{background:#dbeafe;color:#1d4ed8}
-  .badge.p{background:#dcfce7;color:#15803d}
-  .badge.old{background:#f3f4f6;color:#6b7280}
-  .srclink{font-size:11px;color:var(--muted);cursor:pointer;text-decoration:underline dotted}
-  .modal{position:fixed;inset:0;background:rgba(15,23,42,.45);display:none;z-index:40;align-items:flex-start;justify-content:center}
+  .hint{font-size:11.5px;color:var(--muted)}
+  .banner{background:var(--cy-bg);border:1px solid var(--cy-line);color:var(--cy);border-left:3px solid var(--cy);
+          border-radius:var(--r-sm);padding:9px 13px;margin-bottom:12px;font-size:13px;display:flex;gap:10px;align-items:center}
+  .banner.warn{background:var(--warn-bg);border-color:rgba(230,181,103,.4);border-left-color:var(--gold);color:var(--gold)}
+  .badge{display:inline-block;font-size:10.5px;font-weight:600;padding:2px 9px;border-radius:999px;letter-spacing:.3px;font-family:var(--mono)}
+  .badge.q{background:var(--iris-bg);color:var(--iris)}
+  .badge.p{background:var(--cy-bg);color:var(--cy)}
+  .badge.old{background:var(--line-2);color:var(--muted)}
+  .srclink{font-size:11px;color:var(--muted);cursor:pointer;text-decoration:underline dotted;text-underline-offset:2px}
+  .srclink:hover{color:var(--cy)}
+  .modal{position:fixed;inset:0;background:rgba(6,9,14,.66);backdrop-filter:blur(4px);
+         display:none;z-index:40;align-items:flex-start;justify-content:center}
   .modal.show{display:flex}
-  .modal .panel{background:#fff;border-radius:12px;margin:32px;width:min(1100px,95vw);max-height:88vh;overflow:auto;padding:18px}
-  .pm-table th,.pm-table td{font-size:12px;padding:5px}
-  .pm-table input{padding:4px 6px;font-size:12px}
-  .x{cursor:pointer;color:#dc2626;font-weight:700;padding:0 6px}
+  .modal .panel{background:linear-gradient(180deg,var(--card),#10141e);border:1px solid var(--cy-line);
+         border-radius:var(--r);margin:32px;width:min(1100px,95vw);max-height:88vh;overflow:auto;padding:20px;
+         box-shadow:0 30px 70px -24px rgba(0,0,0,.8),0 0 40px -18px rgba(63,220,203,.4)}
+  .pm-table th,.pm-table td{font-size:12px;padding:6px}
+  .pm-table input{padding:5px 7px;font-size:12px}
+  .x{cursor:pointer;color:var(--err);font-weight:700;padding:0 6px}
+  .x:hover{opacity:.7}
   .view-kv{font-size:13px}
-  .view-kv b{display:inline-block;min-width:90px}
-  pre.view-desc{white-space:pre-wrap;font:12px/1.4 inherit;color:var(--muted);margin:2px 0 8px}
-  .bank-view{background:#f8fafc;border:1px dashed var(--line);border-radius:8px;padding:8px 12px;
-             font-size:12px;line-height:1.7;margin-top:8px}
-  .fee-tag{font-size:10px;font-weight:700;color:#9a3412;background:#ffedd5;border-radius:4px;padding:1px 5px;margin-right:4px}
+  .view-kv b{display:inline-block;min-width:90px;color:var(--cy);font-weight:600}
+  pre.view-desc{white-space:pre-wrap;font:12px/1.45 var(--mono);color:var(--muted);margin:2px 0 8px}
+  .bank-view{background:var(--surface);border:1px dashed var(--cy-line);border-radius:var(--r-sm);padding:9px 13px;
+             font-size:12px;line-height:1.7;margin-top:8px;font-family:var(--mono)}
+  .fee-tag{font-size:10px;font-weight:700;color:var(--gold);background:var(--gold-bg);border:1px solid rgba(230,181,103,.35);
+             border-radius:4px;padding:1px 5px;margin-right:4px}
   .pgn{display:flex;gap:8px;align-items:center;justify-content:flex-end;margin-top:10px}
+  .citem{border:1px solid var(--line);border-radius:var(--r-sm);padding:12px 14px;margin-bottom:12px;background:var(--surface)}
+  .citem .row1{display:flex;gap:14px;align-items:flex-end;margin-bottom:10px}
+  .citem .row2{display:flex;gap:14px;flex-wrap:wrap;align-items:flex-end}
+  .citem .fld label{display:block;font-size:11px;color:var(--muted);margin-bottom:3px}
+  .citem .idx{font-weight:700;color:var(--cy);padding-bottom:8px;width:22px;font-family:var(--mono)}
+  a{color:var(--cy)} a:hover{color:var(--iris)}
+  ::-webkit-scrollbar{width:11px;height:11px}
+  ::-webkit-scrollbar-track{background:transparent}
+  ::-webkit-scrollbar-thumb{background:rgba(63,220,203,.22);border-radius:7px;border:3px solid transparent;background-clip:padding-box}
+  ::-webkit-scrollbar-thumb:hover{background:rgba(63,220,203,.4);background-clip:padding-box}
+  #icp-footer{background:rgba(10,13,19,.9)!important;border-top:1px solid var(--line);color:var(--faint)!important}
+  #icp-footer a{color:var(--muted)!important;text-decoration:none}
+  #icp-footer a:hover{color:var(--cy)!important}
 </style>
 </head>
 <body>
 <header>
-  <span class="logo">niuera</span>
-  <span class="sub">报价 · PI 工作台</span>
+  <span class="logo"><span class="logo-mark">&#9647;</span>单据工作台</span>
+  <span class="sub">报价 · PI · 报关 &nbsp;/&nbsp; 本地 · 个人使用</span>
   <nav class="tabs">
     <button id="tab-quote" class="on" onclick="switchTab('quote')">报价</button>
     <button id="tab-pi" onclick="switchTab('pi')">PI</button>
+    <button id="tab-customs" onclick="switchTab('customs')">报关</button>
     <button id="tab-history" onclick="switchTab('history')">历史</button>
     <button id="tab-settings" onclick="switchTab('settings')">设置</button>
   </nav>
@@ -180,8 +252,7 @@
     <div class="card">
       <div class="bar">
         <button class="primary" onclick="generate('xlsx')">⬇ 生成报价 (xlsx)</button>
-        <button onclick="generate('pdf')">导出 PDF</button>
-        <span class="hint">PDF 需本机装 LibreOffice;否则导 xlsx 后另存为 PDF。</span>
+        <button onclick="generate('pdf')">导出 PDF</button>
       </div>
     </div>
   </div>
@@ -261,12 +332,94 @@
   </div>
 </div>
 
+<!-- ============ 报关页 ============ -->
+<div class="full" id="page-customs" style="display:none">
+  <div class="banner" id="customsBanner" style="display:none"></div>
+  <div class="card">
+    <div class="bar">
+      <h3 style="margin:0">源 PI <span class="badge p">报关资料</span></h3>
+      <input id="c_src_no" style="width:200px" placeholder="PI 编号,如 XNY-AD260015"
+        onkeydown="if(event.key==='Enter')customsPrefill()">
+      <button class="sm primary" onclick="customsPrefill()">拉取 PI</button>
+      <span class="hint">生成 报关单 + 发票 + 装箱单 + 申报要素 四件套(zip),沿用 PI 编号入档。也可在历史页 PI 行点「报关资料」。</span>
+    </div>
+  </div>
+
+  <div class="card">
+    <h3>抬头信息</h3>
+    <div class="grid2">
+      <div><label class="req">客户公司 Customer</label><input id="c_customer"></div>
+      <div><label>联系人 Attn</label><input id="c_contact"></div>
+      <div><label>客户地址(发票/装箱单 TO 栏)</label><textarea id="c_address" style="height:52px"></textarea></div>
+      <div>
+        <div class="grid2">
+          <div><label>编号 NO.(沿用 PI)</label><input id="c_no" readonly placeholder="(先拉取 PI)"></div>
+          <div><label>日期 Date</label><input id="c_date"></div>
+          <div><label>币种</label>
+            <select id="c_currency"><option>USD</option><option>EUR</option><option>CNY</option></select></div>
+          <div><label>&nbsp;</label>
+            <label style="display:flex;gap:8px;align-items:center;font-size:13px;color:var(--ink)">
+              <input type="checkbox" id="c_stamp" style="width:auto"> 发票/装箱单盖电子章
+            </label></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="card">
+    <h3>贸易条款 <span class="hint">(只填这一处:发票/装箱单显示 TERMS OF DELIVERY,报关单取成交方式)</span></h3>
+    <div class="grid3">
+      <div><label>成交方式</label>
+        <select id="c_trade_mode" onchange="updateTermsPreview()"><option>CFR</option><option>FOB</option><option>CIF</option><option>EXW</option><option>DDP</option><option>DAP</option></select></div>
+      <div><label>目的地(城市/港口,英文)</label><input id="c_delivery_place" placeholder="如 Winnen" oninput="updateTermsPreview()"></div>
+      <div><label>&nbsp;</label><div class="hint" id="c_terms_preview" style="padding:8px 0"></div></div>
+      <div><label>PAYMENT 付款</label><input id="c_payment"></div>
+      <div><label>ORIGIN 原产地(英文)</label><input id="c_origin_text"></div>
+      <div><label>运费(数字,报关单显示 金额/币种)</label><input id="c_freight"></div>
+    </div>
+  </div>
+
+  <div class="card">
+    <h3>报关单信息</h3>
+    <div class="grid3">
+      <div><label>贸易国(中文)</label><input id="c_trade_country" placeholder="如 德国"></div>
+      <div><label>运抵国(中文)</label><input id="c_arrival_country" placeholder="如 德国"></div>
+      <div><label>指运港(中文)</label><input id="c_dest_port" placeholder="如 德国"></div>
+      <div><label>运输方式</label>
+        <select id="c_transport_mode"><option>航空运输</option><option>水路运输</option><option>公路运输</option><option>铁路运输</option><option>邮件运输</option><option>其他运输</option></select></div>
+      <div><label>包装种类</label><input id="c_package_kind"></div>
+      <div><label>保费</label><input id="c_insurance"></div>
+      <div><label>杂费</label><input id="c_misc_fee"></div>
+      <div><label>出境关别(可留空)</label><input id="c_exit_customs"></div>
+      <div><label>唛头 Marks</label><input id="c_marks"></div>
+      <div><label>数量单位(发票表头 Quantity 括号)</label><input id="c_qty_unit"></div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="bar" style="margin-bottom:10px">
+      <h3 style="margin:0">商品明细(报关四单共用)</h3>
+      <span class="spacer" style="flex:1"></span>
+      <button class="sm" onclick="addCustomsItem()">+ 添加商品行</button>
+    </div>
+    <div id="customsItemsBody"></div>
+    <div class="hint" id="customsTotals" style="margin-top:8px"></div>
+  </div>
+
+  <div class="card">
+    <div class="bar">
+      <button class="primary" onclick="generateCustoms()">⬇ 生成报关资料 (zip)</button>
+      <span class="hint">四份文件打包下载并入档;同号重复生成请在历史页用「复制为新版」。</span>
+    </div>
+  </div>
+</div>
+
 <!-- ============ 历史页 ============ -->
 <div class="full" id="page-history" style="display:none">
   <div class="card">
     <div class="bar" style="margin-bottom:12px">
       <select id="h_type" style="width:130px" onchange="loadHistory(1)">
-        <option value="">全部类型</option><option value="quotation">报价</option><option value="pi">PI</option>
+        <option value="">全部类型</option><option value="quotation">报价</option><option value="pi">PI</option><option value="customs">报关</option>
       </select>
       <select id="h_from" style="width:150px" onchange="loadHistory(1)"><option value="">全部报价人</option></select>
       <input id="h_q" style="width:220px" placeholder="编号或客户名…" onkeydown="if(event.key==='Enter')loadHistory(1)">
@@ -330,7 +483,7 @@
     </div>
     <div class="hint" style="margin-bottom:8px">选型名(红)= 你挑选用,带型号便于区分;对外名 = 报价单显示。描述支持多行(用 \n 或直接换行)。</div>
     <table class="pm-table"><thead>
-      <tr><th>选型名*</th><th>对外名*</th><th>类别</th><th>单位</th><th>档①</th><th>价①</th><th>档②</th><th>价②</th><th>型号</th><th>图片</th><th>描述</th><th></th></tr>
+      <tr><th>选型名*</th><th>对外名*</th><th>类别</th><th>单位</th><th>档①</th><th>价①</th><th>档②</th><th>价②</th><th>型号</th><th>图片</th><th>描述</th><th>报关信息</th><th></th></tr>
     </thead><tbody id="pmBody"></tbody></table>
   </div>
 </div>
@@ -354,7 +507,30 @@ let PRODUCTS=[], DEFAULTS={}, DEFAULTS_PI={}, COMPANY={}, SALES=[], BANKS=[], ST
 let MODE="standard", ITEMS=[], CAT="全部", PMDATA=[], TAB="quote";
 let QUOTE_REV=0, QUOTE_ADVANCE=true, QUOTE_NO_FIXED=null, QUOTE_SOURCE=null;
 let PI_ITEMS=[], PI_REV=0, PI_NO=null, PI_SOURCE=null;
+let C_ITEMS=[], C_REV=0, C_NO=null, C_SOURCE=null, CUSTOMS_DEF={};
 let H_PAGE=1, SETTINGS_BANKS=[];
+/* 最近一次入档的内容指纹:同内容换格式导出时直接取档,不再占号新增记录 */
+let LAST_SAVED={quotation:null, pi:null};
+
+function contentHash(payload){
+  return JSON.stringify({...payload, fmt:null, advance_pi:null, pi_no:null, revision:null, source:null});
+}
+async function saveBlobResponse(r,fallbackName){
+  const blob=await r.blob();
+  const cd=r.headers.get('content-disposition')||''; let fn=fallbackName;
+  const m=cd.match(/filename\*?=(?:UTF-8'')?\"?([^\";]+)/i); if(m) fn=decodeURIComponent(m[1]);
+  const url=URL.createObjectURL(blob); const a=document.createElement('a');
+  a.href=url; a.download=fn; a.click(); URL.revokeObjectURL(url);
+  return fn;
+}
+async function downloadSaved(no,type,rev,fmt){
+  const r=await fetch('/api/documents/'+encodeURIComponent(no)+'/'+type+'/'+rev+'/download'+(fmt?'?fmt='+fmt:''));
+  if((r.headers.get('content-type')||'').includes('application/json')){
+    const d=await r.json(); toast(d.error||'下载失败',true); return;
+  }
+  const fn=await saveBlobResponse(r,no+'.'+(fmt||'xlsx'));
+  toast('已导出 '+fn+'(同一记录 '+no+',未新增历史)');
+}
 
 const CATS=["全部","DC Charging Station 直流充电桩","AC Charger 交流充电桩","LEV DC Charger 轻型车直流充电桩","Charging Module 充电模块"];
 
@@ -362,6 +538,7 @@ async function boot(){
   const r=await fetch('/api/bootstrap'); const d=await r.json();
   PRODUCTS=d.products; DEFAULTS=d.defaults; DEFAULTS_PI=d.defaults_pi||d.defaults;
   COMPANY=d.company; SALES=d.sales_list||[]; BANKS=d.bank_accounts||[]; STAMP=d.stamp||{};
+  CUSTOMS_DEF=d.customs||{};
   document.getElementById('pi_no').value=d.next_pi;
   document.getElementById('date').value=d.today;
   document.getElementById('pi_date').value=d.today;
@@ -376,6 +553,7 @@ async function boot(){
   });
   document.getElementById('pi_stamp').checked=STAMP.enabled_default!==false;
   renderSalesDatalist(); renderBankSelect(); renderChips(); renderCatalog(); renderItems(); renderPiItems();
+  resetCustoms();
 }
 
 function renderSalesDatalist(){
@@ -390,12 +568,13 @@ function rememberFrom(name){
 /* ---------------- tabs ---------------- */
 function switchTab(t){
   TAB=t;
-  ['quote','pi','history','settings'].forEach(x=>{
+  ['quote','pi','customs','history','settings'].forEach(x=>{
     document.getElementById('tab-'+x).className=x===t?'on':'';
   });
   document.getElementById('editorWrap').style.display=(t==='quote'||t==='pi')?'flex':'none';
   document.getElementById('page-quote').style.display=t==='quote'?'block':'none';
   document.getElementById('page-pi').style.display=t==='pi'?'block':'none';
+  document.getElementById('page-customs').style.display=t==='customs'?'block':'none';
   document.getElementById('page-history').style.display=t==='history'?'block':'none';
   document.getElementById('page-settings').style.display=t==='settings'?'block':'none';
   document.getElementById('catalogTarget').textContent=t==='pi'?'→ PI':'→ 报价';
@@ -405,6 +584,7 @@ function switchTab(t){
 function resetActive(){
   if(TAB==='pi') resetPi();
   else if(TAB==='quote') resetQuote();
+  else if(TAB==='customs') resetCustoms();
 }
 
 /* ---------------- catalog ---------------- */
@@ -577,9 +757,15 @@ async function generate(fmt){
     terms:{origin:val('t_origin'),payment:val('t_payment'),price_term:val('t_price_term'),
            delivery_time:val('t_delivery_time'),package:val('t_package'),validity:val('t_validity')}
   };
+  const saved=LAST_SAVED.quotation;
+  if(saved && saved.hash===contentHash(payload)){
+    await downloadSaved(saved.no,'quotation',saved.rev,fmt);
+    return;
+  }
   toast('生成中…');
   const ok=await postGenerate(payload,fmt,'quotation');
   if(ok){
+    if(ok.no) LAST_SAVED.quotation={hash:contentHash(payload), no:ok.no, rev:ok.rev};
     rememberFrom(fromName);
     QUOTE_REV=0;QUOTE_ADVANCE=true;QUOTE_NO_FIXED=null;QUOTE_SOURCE=null;
     document.getElementById('quoteReviseBanner').style.display='none';
@@ -599,13 +785,9 @@ async function postGenerate(payload,fmt,kind){
     }
     return false;
   }
-  const blob=await r.blob();
-  const cd=r.headers.get('content-disposition')||''; let fn=kind+'.'+fmt;
-  const m=cd.match(/filename\*?=(?:UTF-8'')?\"?([^\";]+)/i); if(m) fn=decodeURIComponent(m[1]);
-  const url=URL.createObjectURL(blob); const a=document.createElement('a');
-  a.href=url; a.download=fn; a.click(); URL.revokeObjectURL(url);
+  const fn=await saveBlobResponse(r,kind+'.'+fmt);
   toast('已导出 '+fn);
-  return true;
+  return {no:r.headers.get('X-Doc-No')||null, rev:parseInt(r.headers.get('X-Doc-Rev')||'0',10)||0};
 }
 
 function resetQuote(){
@@ -787,9 +969,15 @@ async function generatePi(fmt){
     terms:{origin:val('p_origin'),payment:val('p_payment'),price_term:val('p_price_term'),
            delivery_time:val('p_delivery_time'),package:val('p_package'),validity:val('p_validity')}
   };
+  const savedPi=LAST_SAVED.pi;
+  if(savedPi && savedPi.hash===contentHash(payload)){
+    await downloadSaved(savedPi.no,'pi',savedPi.rev,fmt);
+    return;
+  }
   toast('生成中…');
   const ok=await postGenerate(payload,fmt,'pi');
   if(ok){
+    if(ok.no) LAST_SAVED.pi={hash:contentHash(payload), no:ok.no, rev:ok.rev};
     rememberFrom(fromName);
     toast('PI 已生成并入档');
     resetPiState();
@@ -808,6 +996,202 @@ function resetPi(){
     document.getElementById('p_'+k).value=DEFAULTS_PI[k]||'';
   });
   renderPiItems(); toast('已清空');
+}
+
+/* ---------------- customs (报关资料) ---------------- */
+function customsDefaults(){
+  const d=CUSTOMS_DEF.defaults||{};
+  return {
+    origin_text:d.origin_text||'CHINA', payment:d.payment||'T/T',
+    qty_unit:d.qty_unit||'SET', marks:d.marks||'N/M',
+    transport_mode:d.transport_mode||'航空运输',
+    package_kind:d.package_kind||'纸箱', exit_customs:d.exit_customs||''
+  };
+}
+function resetCustoms(){
+  C_ITEMS=[]; C_REV=0; C_NO=null; C_SOURCE=null;
+  ['c_src_no','c_customer','c_contact','c_address','c_no','c_delivery_place',
+   'c_trade_country','c_arrival_country','c_dest_port','c_freight','c_insurance','c_misc_fee'
+  ].forEach(id=>document.getElementById(id).value='');
+  const dd=customsDefaults();
+  document.getElementById('c_date').value=todayStr();
+  document.getElementById('c_currency').value='USD';
+  document.getElementById('c_origin_text').value=dd.origin_text;
+  document.getElementById('c_payment').value=dd.payment;
+  document.getElementById('c_qty_unit').value=dd.qty_unit;
+  document.getElementById('c_marks').value=dd.marks;
+  document.getElementById('c_transport_mode').value=dd.transport_mode;
+  document.getElementById('c_package_kind').value=dd.package_kind;
+  document.getElementById('c_exit_customs').value=dd.exit_customs;
+  document.getElementById('c_trade_mode').value='CFR';
+  document.getElementById('c_stamp').checked=STAMP.enabled_default!==false;
+  document.getElementById('customsBanner').style.display='none';
+  updateTermsPreview();
+  renderCustomsItems();
+}
+async function customsPrefill(no){
+  no=(no||document.getElementById('c_src_no').value).trim();
+  if(!no){toast('请输入 PI 编号',true);return;}
+  const r=await fetch('/api/customs/prefill',{method:'POST',
+    headers:{'Content-Type':'application/json'},body:JSON.stringify({no:no})});
+  const d=await r.json();
+  if(d.error){toast(d.error,true);return;}
+  fillCustomsFromPrefill(d);
+  switchTab('customs');
+  const b=document.getElementById('customsBanner');
+  if(d.customs_exists){
+    b.className='banner warn'; b.style.display='flex';
+    b.textContent='ℹ 编号 '+no+' 已有报关资料,已载入上一版内容,生成时将存为新版 R'+d.revision+'。';
+    toast('已载入 '+no+' 上一版报关资料');
+  }else if(d.pi_no_items){
+    b.className='banner warn'; b.style.display='flex';
+    b.textContent='⚠ '+no+' 是迁移旧档,没有明细数据:编号/客户已带出,请点「添加商品行」手工录入。';
+    toast('旧档 PI,商品行需手工添加');
+  }else{
+    b.className='banner'; b.style.display='none';
+    toast('已载入 PI '+no+',请补充地址、HS 编码与箱数/重量');
+  }
+}
+function fillCustomsFromPrefill(d){
+  document.getElementById('c_src_no').value=d.no||'';
+  document.getElementById('c_customer').value=d.customer||'';
+  document.getElementById('c_contact').value=d.contact||'';
+  document.getElementById('c_address').value=d.customer_address||'';
+  document.getElementById('c_no').value=d.no||'';
+  document.getElementById('c_date').value=d.date||todayStr();
+  document.getElementById('c_currency').value=d.currency||'USD';
+  const dd=customsDefaults(), sh=d.shipment||{};
+  document.getElementById('c_origin_text').value=sh.origin_text||dd.origin_text;
+  document.getElementById('c_payment').value=sh.payment||dd.payment;
+  document.getElementById('c_qty_unit').value=sh.qty_unit||dd.qty_unit;
+  document.getElementById('c_marks').value=sh.marks||dd.marks;
+  document.getElementById('c_trade_country').value=sh.trade_country||'';
+  document.getElementById('c_arrival_country').value=sh.arrival_country||'';
+  document.getElementById('c_dest_port').value=sh.dest_port||'';
+  document.getElementById('c_transport_mode').value=sh.transport_mode||dd.transport_mode;
+  document.getElementById('c_trade_mode').value=sh.trade_mode||'CFR';
+  // 旧档只存了 delivery_terms("CFR Winnen"):拆成 成交方式+目的地
+  let place=sh.delivery_place||'';
+  if(!place&&sh.delivery_terms){
+    const m=String(sh.delivery_terms).match(/^([A-Za-z]{3})\b\s*(.*)$/);
+    if(m){document.getElementById('c_trade_mode').value=sh.trade_mode||m[1].toUpperCase();place=m[2];}
+    else place=sh.delivery_terms;
+  }
+  document.getElementById('c_delivery_place').value=place;
+  updateTermsPreview();
+  document.getElementById('c_package_kind').value=sh.package_kind||dd.package_kind;
+  document.getElementById('c_freight').value=sh.freight||'';
+  document.getElementById('c_insurance').value=sh.insurance||'';
+  document.getElementById('c_misc_fee').value=sh.misc_fee||'';
+  document.getElementById('c_exit_customs').value=sh.exit_customs||dd.exit_customs;
+  document.getElementById('c_stamp').checked=d.stamp!==false;
+  C_ITEMS=(d.items||[]).map(it=>({...it}));
+  C_REV=d.revision||0; C_NO=d.no||null; C_SOURCE=d.source||null;
+  renderCustomsItems();
+}
+function addCustomsItem(){
+  C_ITEMS.push({item:'',qty:1,unit_price:'',hs_code:'',cn_name:'',customs_unit:'个',
+    cartons:'',size:'',gw:'',nw:''});
+  renderCustomsItems();
+}
+function removeCustomsItem(i){C_ITEMS.splice(i,1);renderCustomsItems();}
+function updC(i,k,v){C_ITEMS[i][k]=v;recalcCustomsTotals();}
+function updateTermsPreview(){
+  const m=document.getElementById('c_trade_mode').value;
+  const p=document.getElementById('c_delivery_place').value.trim();
+  document.getElementById('c_terms_preview').textContent=
+    '发票/装箱单:TERMS OF DELIVERY: '+m+(p?' '+p:'')+' · 报关单成交方式:'+m;
+}
+function renderCustomsItems(){
+  const body=document.getElementById('customsItemsBody'); body.innerHTML='';
+  if(!C_ITEMS.length){
+    body.innerHTML='<div class="empty">先「拉取 PI」预填,或点「添加商品行」</div>';
+    recalcCustomsTotals(); return;
+  }
+  const fld=(i,k,label,w,attrs,ph)=>`<div class="fld"><label>${label}</label>
+    <input style="width:${w}px" ${attrs||''} placeholder="${ph||''}" value="${escAttr(C_ITEMS[i][k]??'')}" oninput="updC(${i},'${k}',this.value)"></div>`;
+  C_ITEMS.forEach((it,i)=>{
+    const card=document.createElement('div'); card.className='citem';
+    card.innerHTML=`
+      <div class="row1">
+        <div class="idx">${i+1}</div>
+        <div class="fld" style="flex:1"><label>英文品名(发票/装箱单)</label>
+          <input value="${escAttr(it.item??'')}" placeholder="Charging Module" oninput="updC(${i},'item',this.value)"></div>
+        ${fld(i,'qty','数量',90,'class="num" type="number" min="0"')}
+        ${fld(i,'unit_price','单价',110,'class="num" type="number" min="0" step="0.01"')}
+        <div style="padding-bottom:6px"><span class="x" onclick="removeCustomsItem(${i})">✕</span></div>
+      </div>
+      <div class="row2" style="margin-left:36px">
+        ${fld(i,'hs_code','HS 编码*',130,'','8504409999')}
+        ${fld(i,'cn_name','报关中文品名*',140,'','电源模块')}
+        ${fld(i,'customs_unit','申报单位',70,'','个')}
+        ${fld(i,'cartons','箱数',80,'class="num" type="number" min="0"')}
+        ${fld(i,'size','箱尺寸cm(长*宽*高)',150,'','65*47*26')}
+        ${fld(i,'gw','毛重 kg',90,'class="num" type="number" min="0" step="0.01"')}
+        ${fld(i,'nw','净重 kg',90,'class="num" type="number" min="0" step="0.01"')}
+      </div>`;
+    body.appendChild(card);
+  });
+  recalcCustomsTotals();
+}
+function recalcCustomsTotals(){
+  let amt=0,cart=0,gw=0,nw=0;
+  C_ITEMS.forEach(it=>{
+    if(!isBlankPrice(it.qty)&&!isBlankPrice(it.unit_price)) amt+=num(it.qty)*num(it.unit_price);
+    cart+=num(it.cartons); gw+=num(it.gw); nw+=num(it.nw);
+  });
+  const el=document.getElementById('customsTotals');
+  el.textContent=C_ITEMS.length
+    ?`合计:金额 ${fmt(amt)} | 件数 ${cart} 箱 | 毛重 ${Math.round(gw*100)/100} kg | 净重 ${Math.round(nw*100)/100} kg(报关单/装箱单自动汇总)`
+    :'';
+}
+function validateCustoms(){
+  if(!C_NO){toast('请先「拉取 PI」,报关资料沿用 PI 编号',true);return false;}
+  if(!document.getElementById('c_customer').value.trim()){toast('请填写客户抬头',true);return false;}
+  if(!C_ITEMS.length){toast('至少需要一个商品行',true);return false;}
+  for(let i=0;i<C_ITEMS.length;i++){
+    const it=C_ITEMS[i];
+    if(!String(it.item??'').trim()){toast('第 '+(i+1)+' 行英文品名未填',true);return false;}
+    if(isBlankPrice(it.qty)||num(it.qty)<=0){toast('第 '+(i+1)+' 行数量未填或为 0',true);return false;}
+    if(isBlankPrice(it.unit_price)||num(it.unit_price)<=0){toast('第 '+(i+1)+' 行单价未填或为 0',true);return false;}
+    if(!String(it.hs_code??'').trim()){toast('第 '+(i+1)+' 行 HS 编码未填(报关单必填)',true);return false;}
+    if(!String(it.cn_name??'').trim()){toast('第 '+(i+1)+' 行报关中文品名未填(报关单必填)',true);return false;}
+  }
+  if(!document.getElementById('c_address').value.trim()){
+    if(!confirm('客户地址为空,发票/装箱单 TO 栏将留白,确认继续?')) return false;
+  }
+  return true;
+}
+async function generateCustoms(){
+  if(!validateCustoms()) return;
+  const payload={
+    doc_type:'customs',
+    no:C_NO, revision:C_REV, source:C_SOURCE,
+    customer:document.getElementById('c_customer').value.trim(),
+    contact:document.getElementById('c_contact').value.trim(),
+    customer_address:document.getElementById('c_address').value.trim(),
+    date:document.getElementById('c_date').value.trim(),
+    currency:document.getElementById('c_currency').value,
+    stamp:document.getElementById('c_stamp').checked,
+    shipment:{
+      origin_text:val('c_origin_text'), payment:val('c_payment'),
+      delivery_place:val('c_delivery_place'), qty_unit:val('c_qty_unit'),
+      marks:val('c_marks'), trade_country:val('c_trade_country'),
+      arrival_country:val('c_arrival_country'), dest_port:val('c_dest_port'),
+      transport_mode:val('c_transport_mode'), trade_mode:val('c_trade_mode'),
+      package_kind:val('c_package_kind'), freight:val('c_freight'),
+      insurance:val('c_insurance'), misc_fee:val('c_misc_fee'),
+      exit_customs:val('c_exit_customs')
+    },
+    items:C_ITEMS.map(it=>({...it}))
+  };
+  toast('生成中…');
+  const ok=await postGenerate(payload,'zip','customs');
+  if(ok){
+    toast('报关资料已生成并入档');
+    document.getElementById('customsBanner').style.display='none';
+    C_REV=0;
+  }
 }
 
 /* ---------------- history ---------------- */
@@ -848,16 +1232,22 @@ function renderHistory(d){
   d.entries.forEach(e=>{
     const tr=document.createElement('tr');
     const rev=e.revision?` <span class="hint">R${e.revision}</span>`:'';
-    const badge=e.doc_type==='pi'?'<span class="badge p">PI</span>':'<span class="badge q">报价</span>';
+    const badge=e.doc_type==='pi'?'<span class="badge p">PI</span>'
+      :e.doc_type==='customs'?'<span class="badge p" style="background:#0e7490">报关</span>'
+      :'<span class="badge q">报价</span>';
     const oldTag=e.archived_only?' <span class="badge old" title="迁移旧档,无明细数据">旧档</span>':'';
     const src=e.source_no?`<div class="srclink" onclick="searchNo('${escAttr(e.source_no)}')">源: ${esc(e.source_no)}</div>`:'';
     const amount=e.amount!=null?fmt(e.amount):'—';
     let ops=`<button class="sm" onclick="downloadDoc('${escAttr(e.no)}','${e.doc_type}',${e.revision})">下载</button> `;
+    if(e.doc_type!=='customs') ops+=`<button class="sm" onclick="downloadDoc('${escAttr(e.no)}','${e.doc_type}',${e.revision},'pdf')">PDF</button> `;
     ops+=`<button class="sm" onclick="viewDoc('${escAttr(e.no)}','${e.doc_type}',${e.revision})">查看</button> `;
     if(e.doc_type==='quotation'){
       ops+=e.archived_only
         ?`<button class="sm" disabled title="旧单无明细,请手工新建 PI">转为 PI</button> `
         :`<button class="sm primary" onclick="convertToPi('${escAttr(e.no)}',${e.revision})">转为 PI</button> `;
+    }
+    if(e.doc_type==='pi'){
+      ops+=`<button class="sm primary" onclick="customsPrefill('${escAttr(e.no)}')">报关资料</button> `;
     }
     ops+=e.archived_only
       ?`<button class="sm" disabled title="旧单无明细,无法复制">复制新版</button>`
@@ -877,14 +1267,20 @@ function searchNo(no){
   document.getElementById('h_type').value='';
   loadHistory(1);
 }
-function downloadDoc(no,type,rev){
-  window.open('/api/documents/'+encodeURIComponent(no)+'/'+type+'/'+rev+'/download','_blank');
+async function downloadDoc(no,type,rev,fmt){
+  const r=await fetch('/api/documents/'+encodeURIComponent(no)+'/'+type+'/'+rev+'/download'+(fmt?'?fmt='+fmt:''));
+  if((r.headers.get('content-type')||'').includes('application/json')){
+    const d=await r.json(); toast(d.error||'下载失败',true); return;
+  }
+  if(fmt==='pdf') toast('转换中…');
+  const fn=await saveBlobResponse(r,no+'.'+(fmt||'xlsx'));
+  toast('已导出 '+fn);
 }
 async function viewDoc(no,type,rev){
   const r=await fetch('/api/documents/'+encodeURIComponent(no)+'/'+type+'/'+rev);
   const d=await r.json();
   if(d.error){toast(d.error,true);return;}
-  document.getElementById('viewTitle').textContent=(type==='pi'?'PI ':'报价 ')+no+(rev?' R'+rev:'');
+  document.getElementById('viewTitle').textContent=({pi:'PI ',customs:'报关资料 '}[type]||'报价 ')+no+(rev?' R'+rev:'');
   let h=`<p><b>客户:</b>${esc(d.customer||'—')} <b style="margin-left:16px">联系人:</b>${esc(d.contact||'—')}</p>
     <p><b>报价人:</b>${esc(d.from_name||'—')} <b style="margin-left:16px">日期:</b>${esc(d.date||'—')}
        <b style="margin-left:16px">币种:</b>${esc(d.currency||'—')}</p>`;
@@ -911,6 +1307,7 @@ async function viewDoc(no,type,rev){
 }
 
 async function convertToPi(no,rev){
+  LAST_SAVED.pi=null;
   const r=await fetch('/api/documents/convert-to-pi',{method:'POST',
     headers:{'Content-Type':'application/json'},body:JSON.stringify({no:no,revision:rev})});
   const d=await r.json();
@@ -950,10 +1347,21 @@ function fillPiFromPrefill(d,no){
 }
 
 async function reviseDoc(no,type,rev){
+  LAST_SAVED={quotation:null, pi:null};
   const r=await fetch('/api/documents/revise',{method:'POST',
     headers:{'Content-Type':'application/json'},body:JSON.stringify({no:no,doc_type:type,revision:rev})});
   const d=await r.json();
   if(d.error){toast(d.error,true);return;}
+  if(type==='customs'){
+    fillCustomsFromPrefill(d);
+    document.getElementById('c_date').value=todayStr();
+    switchTab('customs');
+    const b=document.getElementById('customsBanner');
+    b.className='banner'; b.style.display='flex';
+    b.textContent='正在编辑 '+no+' 报关资料的新版本 R'+d.revision+',生成后原版本保持不变。';
+    toast('已载入 '+no+',保存时生成 R'+d.revision);
+    return;
+  }
   if(type==='pi'){
     fillPiFromPrefill(d,no);
     document.getElementById('pi_date').value=todayStr();
@@ -1045,6 +1453,11 @@ function renderPM(){
          ${p.image?`<button class="sm" onclick="PMDATA[${i}].image='';renderPM()">清除</button>`:''}
        </td>`+
       `<td><textarea style="width:200px;height:38px" oninput="PMDATA[${i}]['desc']=this.value">${esc(p.desc??'')}</textarea></td>`+
+      `<td style="min-width:180px">
+         <input style="width:110px" placeholder="HS编码" value="${escAttr(p.hs_code??'')}" oninput="PMDATA[${i}].hs_code=this.value"><br>
+         <input style="width:90px;margin-top:2px" placeholder="报关品名" value="${escAttr(p.cn_name??'')}" oninput="PMDATA[${i}].cn_name=this.value">
+         <input style="width:40px;margin-top:2px" placeholder="单位" value="${escAttr(p.customs_unit??'')}" oninput="PMDATA[${i}].customs_unit=this.value">
+       </td>`+
       `<td><span class="x" onclick="PMDATA.splice(${i},1);renderPM()">✕</span></td>`;
     b.appendChild(tr);
   });
@@ -1052,7 +1465,8 @@ function renderPM(){
 function addProduct(){
   const n=PMDATA.length+1;
   PMDATA.push({id:'P'+String(Date.now()).slice(-6),select:'',item:'',category:'Charging Module 充电模块',
-    desc:'',unit:'PCS',band1:'1+',price1:null,band2:null,price2:null,model:'',image:''});
+    desc:'',unit:'PCS',band1:'1+',price1:null,band2:null,price2:null,model:'',image:'',
+    hs_code:'',cn_name:'',customs_unit:''});
   renderPM();
 }
 function pickImage(i){
@@ -1092,5 +1506,6 @@ function toast(msg,err){const t=document.getElementById('toast');t.textContent=m
 document.getElementById('currency').addEventListener('change',renderItems);
 boot();
 </script>
+<div id="icp-footer" style="position:fixed;bottom:0;left:0;right:0;text-align:center;padding:3px 0;font-size:11px;color:#94a3b8;background:rgba(255,255,255,.85);z-index:999"><a href="https://beian.miit.gov.cn" target="_blank" rel="noopener" style="color:#94a3b8;text-decoration:none">苏ICP备2026047771号-1</a><!-- 公安备案预留:通过后在此追加 | <a href="https://beian.mps.gov.cn/#/query/webSearch?code=号码中间数字">苏公网安备xxx号</a> --></div>
 </body>
 </html>
